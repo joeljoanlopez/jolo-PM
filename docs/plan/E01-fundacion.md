@@ -33,4 +33,4 @@ arrancan en Docker y se pueden desarrollar sin instalar PHP en el host.
 - [x] Esqueleto del frontend (Vite, TypeScript estricto, Tailwind, Lucide)
 - [x] Dockerfiles multi-etapa de backend y frontend
 - [x] `compose.yaml`, `.env.example` y `.gitignore`
-- [ ] Crear el repo privado en GitHub y subir `main`
+- [x] Crear el repo privado en GitHub y subir `main`
