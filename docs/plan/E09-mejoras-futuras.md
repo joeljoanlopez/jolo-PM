@@ -18,4 +18,6 @@ Ninguna está comprometida; se mueven a su propia épica cuando se vayan a hacer
   aunque todavía no haya PR abierta.
 - [ ] **Varios tokens de GitHub**, uno por propietario: un fine-grained token
   solo ve los repos de un usuario u organización.
+- [ ] **Passkeys (WebAuthn)** como alternativa o sustituto del TOTP del login
+  de E10: entrar con huella o Face ID, sin códigos.
 - [ ] **Widget para Glance** con el progreso de cada proyecto.

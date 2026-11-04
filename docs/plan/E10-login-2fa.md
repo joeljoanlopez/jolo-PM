@@ -7,13 +7,22 @@ y la VPN, y cualquiera de dentro ve los repos a los que tiene acceso el token.
 
 ## Alcance
 
-### Usuarios
-- Pocos usuarios y **sin registro público**. Las cuentas se crean por consola:
-  `php artisan users:create {usuario}` pide la contraseña sin mostrarla.
-- Contraseña con hash de Laravel (argon2id o bcrypt) y un mínimo de 12
-  caracteres.
-- **El 2FA es obligatorio.** El primer login después de la contraseña obliga a
-  darlo de alta; mientras no se haga, no se puede usar nada más.
+### Usuario único y configuración inicial
+- La app tiene **un solo usuario**. No hay nombre de usuario ni registro: se
+  entra con contraseña y código.
+- Mientras no exista, la web muestra un **asistente de configuración inicial**
+  en vez del login:
+  1. Pide el **código de configuración**: un código aleatorio de un solo uso que
+     el backend genera al arrancar si no hay usuario y escribe en sus logs
+     (`docker compose logs backend`). Así, alguien de la red que abra la web
+     antes que yo no puede quedarse la cuenta: hace falta acceso al servidor.
+  2. Contraseña (dos veces, mínimo 12 caracteres), guardada con el hash de
+     Laravel (argon2id o bcrypt).
+  3. Alta del 2FA con QR y confirmación con un código válido.
+  4. Muestra los códigos de recuperación.
+  La cuenta solo se crea cuando se completan los cuatro pasos. Después, el
+  asistente y su código dejan de existir.
+- **El 2FA es obligatorio**: no hay cuenta sin él.
 
 ### Segundo factor: TOTP
 - Códigos de 6 dígitos que cambian cada 30 s (RFC 6238), compatibles con
@@ -28,51 +37,51 @@ y la VPN, y cualquiera de dentro ve los repos a los que tiene acceso el token.
 - **10 códigos de recuperación** de un solo uso, guardados con hash. Se
   muestran una única vez al activar el 2FA y se pueden regenerar con la sesión
   iniciada.
-- Si se pierde el móvil y los códigos de recuperación:
-  `php artisan users:reset-2fa {usuario}` obliga a darlo de alta de nuevo en el
-  siguiente login.
+- Si se pierde la contraseña, el móvil o los códigos de recuperación:
+  `php artisan auth:reset` borra la cuenta (no los proyectos) y la web vuelve
+  al asistente de configuración inicial, con un código nuevo en los logs. Es la
+  única operación por consola, y solo para recuperar el acceso.
 
 ### Flujo de login (dos pasos)
-1. `POST /api/auth/login` `{username, password}`. Si es correcto, la sesión
+- `GET /api/auth/setup` dice si hace falta la configuración inicial;
+  `POST /api/auth/setup/*` recorre sus pasos con el código de configuración.
+1. `POST /api/auth/login` `{password}`. Si es correcto, la sesión
    queda **pendiente de 2FA** (caduca en 5 minutos), no autenticada.
 2. `POST /api/auth/two-factor` `{code}` o `{recoveryCode}`. Si es correcto, la
    sesión pasa a autenticada y su id se regenera.
 - `POST /api/auth/logout` y `GET /api/auth/me` (quién soy y en qué paso estoy).
-- Los errores no revelan si falló el usuario o la contraseña.
 
 ### Protección
 - Todas las rutas de `/api` exigen sesión autenticada, salvo `/api/health` y
   `/api/auth/*`. Sin sesión, la respuesta es 401 con la forma de error de
   siempre.
-- **Límite de intentos** de login y de 2FA, por IP y por usuario (por ejemplo,
-  5 por minuto). Al superarlo: 429 con el tiempo de espera.
+- **Límite de intentos** de login, de 2FA y del código de configuración, por IP
+  (por ejemplo, 5 por minuto). Al superarlo: 429 con el tiempo de espera.
 - Cookie de sesión `HttpOnly`, `Secure` y `SameSite=Strict`, con caducidad por
   inactividad configurable (`SESSION_LIFETIME`, 7 días por defecto).
 - Protección CSRF con el mecanismo de Laravel: cookie `XSRF-TOKEN` y cabecera
   `X-XSRF-TOKEN` en cada petición que modifica algo.
-- Un registro de cada inicio de sesión, correcto o fallido, con usuario, IP y
-  hora.
+- Un registro de cada inicio de sesión, correcto o fallido, con IP y hora.
 - `APP_KEY` pasa a ser obligatoria, porque cifra las cookies y el secreto TOTP:
   `${APP_KEY:?}` en el compose y su generación documentada en el README.
 - El worker no cambia: corre por consola y no pasa por HTTP.
 
 ### Arquitectura
-- **Dominio** (PHP puro): `User`, `RecoveryCodes`, `TotpVerifier` (RFC 6238 con
-  `hash_hmac`, sin librerías) y los puertos `UserRepository`, `PasswordHasher`,
+- **Dominio** (PHP puro): `Account`, `SetupCode`, `RecoveryCodes`, `TotpVerifier` (RFC 6238 con
+  `hash_hmac`, sin librerías) y los puertos `AccountRepository`, `PasswordHasher`,
   `SecretCipher`, `Clock` y `LoginAttemptLimiter`.
-- **Aplicación**: `Login`, `VerifySecondFactor`, `EnrollTotp`,
-  `ConfirmTotpEnrollment`, `RegenerateRecoveryCodes`, `CreateUser` y
-  `ResetTwoFactor`.
+- **Aplicación**: `IssueSetupCode`, `CompleteSetup`, `Login`,
+  `VerifySecondFactor`, `RegenerateRecoveryCodes` y `ResetAccount`.
 - **Infraestructura**: adaptadores sobre `Hash`, `Crypt`, `RateLimiter` y la
   sesión de Laravel; el middleware de autenticación; los controladores y los
   comandos.
-- **Frontend**: un puerto `AuthGateway` con su adaptador HTTP, las pantallas de
-  login, de código y de alta del 2FA, y un guardián que manda a login ante
+- **Frontend**: un puerto `AuthGateway` con su adaptador HTTP, el asistente de
+  configuración inicial, las pantallas de login y de código, y un guardián que manda a login ante
   cualquier 401.
 
 ### Fuera de alcance
-- Passkeys (WebAuthn), login con GitHub y cualquier forma de SSO. Si se quieren,
-  van al backlog (E09).
+- Varios usuarios.
+- Passkeys (WebAuthn): están en el backlog (E09). Login con GitHub o SSO: no.
 - Autenticación en el proxy (Authelia, cabeceras de Tailscale). Es una
   alternativa válida que no toca la app, pero se descarta para que la app se
   proteja sola, esté detrás del proxy que esté.
@@ -82,6 +91,8 @@ y la VPN, y cualquiera de dentro ve los repos a los que tiene acceso el token.
 - Con la contraseña correcta pero sin el segundo factor, tampoco hay acceso.
 - Un código TOTP ya usado se rechaza aunque siga dentro de su ventana.
 - Un código de recuperación funciona una sola vez.
+- Sin el código de configuración de los logs no se puede crear la cuenta, y una
+  vez creada el asistente responde 404.
 - El 6.º intento fallido en un minuto devuelve 429.
 - En la base de datos no aparece en claro ni el secreto TOTP ni los códigos de
   recuperación.
@@ -89,18 +100,20 @@ y la VPN, y cualquiera de dentro ve los repos a los que tiene acceso el token.
   `Application`.
 
 ## Subtareas
-- [ ] Modelo `User`, migración y comando `users:create`
+- [ ] Modelo `Account` (usuario único) y migración
+- [ ] Código de configuración: generado al arrancar sin cuenta, escrito en los logs y de un solo uso
+- [ ] Asistente de configuración inicial en la API (contraseña + alta del 2FA + códigos de recuperación)
 - [ ] `TotpVerifier` en el dominio, probado con los vectores del RFC 6238
 - [ ] Rechazo de códigos reutilizados (último periodo usado)
 - [ ] Códigos de recuperación: generación, hash y consumo de un solo uso
 - [ ] Secreto TOTP cifrado (puerto `SecretCipher` + adaptador con `Crypt`)
-- [ ] Casos de uso de login en dos pasos, alta del 2FA y regeneración de códigos
+- [ ] Casos de uso de login en dos pasos y regeneración de códigos de recuperación
 - [ ] Rutas `/api/auth/*`, middleware de autenticación y 401 en el resto de la API
-- [ ] Límite de intentos por IP y por usuario (429)
+- [ ] Límite de intentos por IP en login, 2FA y configuración (429)
 - [ ] Sesión en cookie segura, CSRF y `APP_KEY` obligatoria
 - [ ] Registro de inicios de sesión
-- [ ] Comando `users:reset-2fa`
-- [ ] Frontend: `AuthGateway`, pantallas de login, código y alta con QR
+- [ ] Comando `auth:reset` para recuperar el acceso
+- [ ] Frontend: `AuthGateway`, asistente de configuración con QR, pantallas de login y código
 - [ ] Frontend: redirección a login ante 401 y botón de cerrar sesión
 - [ ] Tests de API del flujo completo, incluidos límite de intentos y CSRF
-- [ ] README: crear el primer usuario, `APP_KEY` y qué hacer si se pierde el 2FA
+- [ ] README: configuración inicial, `APP_KEY` y qué hacer si se pierde el acceso
