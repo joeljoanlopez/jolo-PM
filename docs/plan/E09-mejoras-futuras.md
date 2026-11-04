@@ -16,4 +16,6 @@ Ninguna está comprometida; se mueven a su propia épica cuando se vayan a hacer
   existen en la rama principal.
 - [ ] **Ramas sin PR**: detectar casillas marcadas en ramas con commits recientes
   aunque todavía no haya PR abierta.
+- [ ] **Varios tokens de GitHub**, uno por propietario: un fine-grained token
+  solo ve los repos de un usuario u organización.
 - [ ] **Widget para Glance** con el progreso de cada proyecto.

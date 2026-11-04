@@ -16,7 +16,7 @@ tests antes del merge.
 - La app responde en el dominio interno y el workflow de CI pasa en verde.
 
 ## Subtareas
-- [ ] Workflow de CI con backend y frontend
-- [ ] README de puesta en marcha y token de GitHub
-- [ ] Despliegue en el servidor con `nginx-autoconf`
-- [ ] Alta de PKManagement y de jolo-PM en la instancia desplegada
+- [x] Workflow de CI con backend y frontend
+- [x] README de puesta en marcha y token de GitHub
+- [ ] Despliegue en el servidor con `nginx-autoconf` y token propio en `.env`
+- [x] Alta de PKManagement y de jolo-PM en la instancia desplegada
