@@ -17,7 +17,7 @@ repos a los que tengo acceso.
   `docs/plan/E*.md` solo desde la interfaz.
 
 ## Subtareas
-- [ ] Formulario de alta con buscador de repos
-- [ ] Edición de rama, globs y nombre
-- [ ] Baja con confirmación
-- [ ] Mensajes de error del backend en el formulario
+- [x] Formulario de alta con buscador de repos
+- [x] Edición de rama, globs y nombre
+- [x] Baja con confirmación
+- [x] Mensajes de error del backend en el formulario
