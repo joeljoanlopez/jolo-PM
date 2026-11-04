@@ -11,3 +11,8 @@ frontend/dist/
 
 .claude/
 frontend/*.tsbuildinfo
+
+# Ficheros de intercambio de editores: pueden contener el .env entero.
+*.swp
+*.swo
+*~
