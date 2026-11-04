@@ -18,5 +18,5 @@ tests antes del merge.
 ## Subtareas
 - [x] Workflow de CI con backend y frontend
 - [x] README de puesta en marcha y token de GitHub
-- [ ] Despliegue en el servidor con `nginx-autoconf` y token propio en `.env`
+- [x] Despliegue en el servidor con `nginx-autoconf` y token propio en `.env`
 - [x] Alta de PKManagement y de jolo-PM en la instancia desplegada
