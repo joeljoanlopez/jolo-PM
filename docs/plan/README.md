@@ -10,6 +10,8 @@ Este plan se sigue a sí mismo: jolo-PM está dado de alta en jolo-PM con la rut
 ## Cómo está organizado
 
 - Un fichero por **épica** (`E01-…md`). Cada uno es una tarjeta del tablero.
+- Una épica grande se parte en **sub-épicas** (`E09.1-…md`), cada una en su
+  fichero y con su tarjeta. La épica madre queda como índice sin casillas.
 - Cada épica tiene **Objetivo**, **Alcance**, **Criterios de aceptación** y la
   lista de **subtareas** como casillas.
 - La columna de la tarjeta sale sola de sus casillas:
@@ -34,6 +36,13 @@ Este plan se sigue a sí mismo: jolo-PM está dado de alta en jolo-PM con la rut
 | E07 | [Frontend: gestión de proyectos](E07-gestion-proyectos.md) | Frontend |
 | E08 | [Despliegue y CI](E08-despliegue-ci.md) | Infra |
 | E09 | [Mejoras futuras](E09-mejoras-futuras.md) | Backlog |
+| E09.1 | ↳ [Webhook de GitHub](E09.1-webhook-github.md) | Backlog |
+| E09.2 | ↳ [Tarjeta por sección](E09.2-tarjeta-por-seccion.md) | Backlog |
+| E09.3 | ↳ [Historial de progreso](E09.3-historial-progreso.md) | Backlog |
+| E09.4 | ↳ [Trabajo fuera de la rama principal](E09.4-trabajo-fuera-de-main.md) | Backlog |
+| E09.5 | ↳ [Varios tokens de GitHub](E09.5-varios-tokens.md) | Backlog |
+| E09.6 | ↳ [Passkeys (WebAuthn)](E09.6-passkeys.md) | Backlog |
+| E09.7 | ↳ [Widget para Glance](E09.7-widget-glance.md) | Backlog |
 | E10 | [Login con 2FA](E10-login-2fa.md) | Seguridad |
 | E11 | [Despliegue automático](E11-despliegue-automatico.md) | Infra |
 | E12 | [Idiomas: castellano e inglés](E12-idiomas.md) | Frontend |

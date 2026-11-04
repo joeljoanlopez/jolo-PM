@@ -25,7 +25,7 @@ sin abrir puertos ni instalar un runner de GitHub. Es **opcional** y viene
   `.timer`. Un script de instalación los genera con la ruta absoluta del repo,
   así no queda ninguna ruta fija en git, y también sabe desinstalarlos.
 - Sin runner de Actions ni webhook: el repo es público y el servidor no se
-  expone. El webhook de E09 sigue siendo solo para sincronizar.
+  expone. El webhook de E09.1 sigue siendo solo para sincronizar.
 
 ## Criterios de aceptación
 - Con `AUTO_DEPLOY=false` (o sin definir), el timer se ejecuta y no toca nada.
