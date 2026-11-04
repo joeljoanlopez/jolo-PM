@@ -5,9 +5,9 @@ Tener jolo-PM corriendo en el servidor detrás de nginx, y que cada PR pase los
 tests antes del merge.
 
 ## Alcance
-- Desplegado en `joloserver` con `docker compose`, servido como
-  `jolo-pm.lan.joeljoanlopez.com` mediante las labels de `nginx-autoconf`
-  (solo LAN y Tailscale).
+- Desplegado en el servidor de casa con `docker compose`, detrás del proxy
+  inverso (labels de `nginx-autoconf`) y accesible solo desde la red local y la
+  VPN.
 - GitHub Actions: PHPUnit del backend y `tsc` + build del frontend en cada push
   y PR.
 - README con puesta en marcha, cómo crear el token y cómo conectar proyectos.
