@@ -23,7 +23,7 @@ sin acceso, 404 proyecto inexistente, 409 repo ya dado de alta, 502 GitHub caíd
 - Todas las rutas probadas con `curl` contra el contenedor.
 
 ## Subtareas
-- [ ] Front controller con Slim y manejador de errores
-- [ ] `ProjectController` y `RepositoryController`
-- [ ] Validación de entrada y traducción de excepciones a códigos HTTP
-- [ ] Prueba con `curl` de todas las rutas
+- [x] Front controller con Slim y manejador de errores
+- [x] `ProjectController` y `RepositoryController`
+- [x] Validación de entrada y traducción de excepciones a códigos HTTP
+- [x] Prueba con `curl` de todas las rutas

@@ -1,0 +1,128 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Tests\Feature;
+
+use App\Domain\Port\SourceHost;
+use App\Infrastructure\Cache\CachingSourceHost;
+use App\Domain\Port\ContentCache;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Support\FakeSourceHost;
+use Tests\TestCase;
+
+final class ProjectApiTest extends TestCase
+{
+    use RefreshDatabase;
+
+    private FakeSourceHost $github;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->github = new FakeSourceHost();
+        $this->github->files = [
+            'docs/plan/E01.md' => "# E01\n## Subtareas\n- [x] a\n- [ ] b",
+            'docs/plan/E02.md' => "# E02\n- [ ] c",
+            'README.md' => '- [ ] fuera del glob',
+        ];
+        // El adaptador real se cambia por el falso; la caché es la de verdad.
+        $this->app->instance(SourceHost::class, new CachingSourceHost($this->github, $this->app->make(ContentCache::class)));
+    }
+
+    public function test_health(): void
+    {
+        $this->getJson('/api/health')->assertOk()->assertExactJson(['status' => 'ok']);
+    }
+
+    public function test_add_project_syncs_and_returns_board(): void
+    {
+        $response = $this->postJson('/api/projects', ['repository' => 'o/r', 'paths' => ['docs/plan/*.md']]);
+
+        $response->assertCreated()
+            ->assertJsonPath('project.repository', 'o/r')
+            ->assertJsonPath('board.summary.total', 3)
+            ->assertJsonPath('board.summary.columns.in_progress', 1)
+            ->assertJsonPath('board.cards.0.title', 'E01')
+            ->assertJsonPath('board.cards.0.tasks.1.section', 'Subtareas')
+            ->assertJsonCount(2, 'board.cards');
+    }
+
+    public function test_listing_includes_summary(): void
+    {
+        $this->postJson('/api/projects', ['repository' => 'o/r', 'paths' => ['docs/plan/*.md'], 'name' => 'Mi plan']);
+
+        $this->getJson('/api/projects')
+            ->assertOk()
+            ->assertJsonPath('0.label', 'Mi plan')
+            ->assertJsonPath('0.summary.done', 1)
+            ->assertJsonPath('0.error', null);
+    }
+
+    public function test_pr_checking_a_task_moves_card_to_review(): void
+    {
+        $id = $this->postJson('/api/projects', ['repository' => 'o/r', 'paths' => ['docs/plan/*.md']])->json('project.id');
+
+        $this->github->openPullRequest(12, ['docs/plan/E02.md' => "# E02\n- [x] c"]);
+
+        $this->postJson("/api/projects/$id/sync")
+            ->assertOk()
+            ->assertJsonPath('board.cards.1.status', 'review')
+            ->assertJsonPath('board.cards.1.tasks.0.prs', [12])
+            ->assertJsonPath('board.cards.1.pullRequests.0.number', 12);
+    }
+
+    public function test_second_sync_uses_cached_contents(): void
+    {
+        $id = $this->postJson('/api/projects', ['repository' => 'o/r', 'paths' => ['docs/plan/*.md']])->json('project.id');
+        $this->github->blobRequests = [];
+
+        $this->postJson("/api/projects/$id/sync")->assertOk();
+
+        $this->assertSame([], $this->github->blobRequests);
+    }
+
+    public function test_update_and_delete(): void
+    {
+        $id = $this->postJson('/api/projects', ['repository' => 'o/r', 'paths' => ['docs/plan/*.md']])->json('project.id');
+
+        $this->patchJson("/api/projects/$id", ['paths' => ['**/*.md'], 'branch' => 'main'])
+            ->assertOk()
+            ->assertJsonPath('project.branch', 'main')
+            ->assertJsonPath('board.summary.total', 4);
+
+        $this->deleteJson("/api/projects/$id")->assertNoContent();
+        $this->getJson("/api/projects/$id/board")->assertNotFound()->assertJsonPath('error.code', 'not_found');
+    }
+
+    public function test_errors_have_a_stable_shape(): void
+    {
+        $this->postJson('/api/projects', ['repository' => 'otro/repo', 'paths' => ['*.md']])
+            ->assertStatus(422)->assertJsonPath('error.code', 'repository_not_accessible');
+
+        $this->postJson('/api/projects', ['repository' => 'o/r', 'paths' => []])
+            ->assertStatus(422)->assertJsonPath('error.code', 'validation_failed');
+
+        $this->postJson('/api/projects', ['repository' => 'o/r', 'paths' => ['   ']])
+            ->assertStatus(422)->assertJsonPath('error.fields.paths', fn ($m) => str_contains($m, 'glob'));
+
+        $this->postJson('/api/projects', ['repository' => 'o/r', 'paths' => ['*.md']])->assertCreated();
+        $this->postJson('/api/projects', ['repository' => 'https://github.com/o/r', 'paths' => ['*.md']])
+            ->assertStatus(409)->assertJsonPath('error.code', 'duplicate_project');
+    }
+
+    public function test_failed_sync_keeps_previous_board(): void
+    {
+        $id = $this->postJson('/api/projects', ['repository' => 'o/r', 'paths' => ['docs/plan/*.md']])->json('project.id');
+
+        // La rama desaparece: GitHub respondería 404 al pedir el árbol.
+        $this->app->instance(SourceHost::class, new class ($this->github) extends \Tests\Support\FailingSourceHost {});
+
+        $this->postJson("/api/projects/$id/sync")->assertStatus(502);
+
+        $this->getJson("/api/projects/$id/board")
+            ->assertOk()
+            ->assertJsonPath('board.summary.total', 3)
+            ->assertJsonPath('error', fn ($e) => str_contains((string) $e, 'GitHub'));
+    }
+}
