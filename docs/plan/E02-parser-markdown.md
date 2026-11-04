@@ -23,9 +23,9 @@ y su nivel de anidación, sin exigir ningún formato especial al autor.
   emparejamiento de la tarea.
 
 ## Subtareas
-- [ ] Modelo de dominio: `Task`, `ParsedDocument`
-- [ ] Parser de casillas con sección, profundidad y línea
-- [ ] Ignorar bloques de código
-- [ ] Clave estable normalizada (sin enlaces, sin formato, en minúsculas)
-- [ ] `GlobMatcher` con `*`, `**` y `?`
-- [ ] Tests unitarios del parser y del glob
+- [x] Modelo de dominio: `Task`, `ParsedDocument`
+- [x] Parser de casillas con sección, profundidad y línea
+- [x] Ignorar bloques de código
+- [x] Clave estable normalizada (sin enlaces, sin formato, en minúsculas)
+- [x] `GlobMatcher` con `*`, `**` y `?`
+- [x] Tests unitarios del parser y del glob
