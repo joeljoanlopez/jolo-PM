@@ -29,9 +29,9 @@ la interfaz sea instantánea y no dependa de que GitHub responda en ese momento.
 - Un fallo de GitHub no deja el tablero vacío.
 
 ## Subtareas
-- [ ] Modelos `Project`, `Board`, `Card`, `CardStatus`, `TaskState`
-- [ ] `BoardBuilder` con las reglas de columna y de revisión
-- [ ] Repositorio de proyectos y almacén de snapshots en SQLite (WAL)
-- [ ] Casos de uso: añadir, editar, borrar, sincronizar uno y sincronizar todos
-- [ ] Comandos `projects:sync` y `blobs:prune`, y worker con el scheduler
-- [ ] Tests del `BoardBuilder` y de la sincronización con un `SourceHost` falso
+- [x] Modelos `Project`, `Board`, `Card`, `CardStatus`, `TaskState`
+- [x] `BoardBuilder` con las reglas de columna y de revisión
+- [x] Repositorio de proyectos y almacén de snapshots en SQLite (WAL)
+- [x] Casos de uso: añadir, editar, borrar, sincronizar uno y sincronizar todos
+- [x] Comandos `projects:sync` y `blobs:prune`, y worker con el scheduler
+- [x] Tests del `BoardBuilder` y de la sincronización con un `SourceHost` falso
