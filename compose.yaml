@@ -34,8 +34,9 @@ services:
     container_name: jolo-pm-frontend
     restart: unless-stopped
     ports:
-      # Solo en localhost: se expone con el proxy inverso del host
-      # (labels de nginx-autoconf), que además restringe a LAN y Tailscale.
+      # Solo en localhost: se expone con un proxy inverso delante (las labels
+      # de abajo son para un generador de vhosts de nginx), que es quien debe
+      # restringir el acceso: la app no tiene login.
       - "127.0.0.1:${JOLOPM_PORT:-8095}:80"
     labels:
       - "nginx.autoconf=true"

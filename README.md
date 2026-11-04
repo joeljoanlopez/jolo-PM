@@ -35,13 +35,21 @@ cp .env.example .env      # y rellena GITHUB_TOKEN
 docker compose up -d --build
 ```
 
-La web queda en `http://127.0.0.1:8095` y, con
-[nginx-autoconf](../nginx-autoconf), en `https://jolo-pm.lan.joeljoanlopez.com`
-(solo LAN y Tailscale). La base de datos SQLite va a `./data`.
+La web queda en `http://127.0.0.1:8095`, solo en local a propósito: para
+abrirla desde otros dispositivos, ponle delante un proxy inverso. El
+`compose.yaml` trae las labels de un generador de vhosts de nginx
+(`nginx.autoconf`, `nginx.domain`); si usas otro proxy, quítalas o cámbialas
+por las suyas.
+
+jolo-PM **no tiene login**: cualquiera que llegue a la web ve los repos a los
+que tiene acceso el token. Limita el acceso desde el proxy (red local, VPN…).
+
+La base de datos SQLite va a `./data`.
 
 ### Token de GitHub
 
-Solo necesita **leer**. Opciones:
+Solo necesita **leer**, y conviene que vea únicamente los repos que quieres
+seguir (ver la nota de arriba sobre el login). Opciones:
 
 - **Fine-grained token** (recomendado): *Settings → Developer settings →
   Fine-grained tokens*. Acceso a los repos que quieras seguir y permisos de solo
