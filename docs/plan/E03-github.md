@@ -24,8 +24,8 @@ lectura y gastando las mínimas peticiones posibles.
   de árbol y de PRs.
 
 ## Subtareas
-- [ ] Puerto `SourceHost` y modelos `RepositoryInfo`, `FileRef`, `PullRequest`
-- [ ] Cliente HTTP con token, paginación y errores tipados
-- [ ] Adaptador `GitHubSourceHost`
-- [ ] Puerto `ContentCache`, adaptador Eloquent y decorador `CachingSourceHost`
-- [ ] Tests del adaptador con `Http::fake` (paginación, base64, 401, 404, límite)
+- [x] Puerto `SourceHost` y modelos `RepositoryInfo`, `FileRef`, `PullRequest`
+- [x] Cliente HTTP con token, paginación y errores tipados
+- [x] Adaptador `GitHubSourceHost`
+- [x] Puerto `ContentCache`, adaptador Eloquent y decorador `CachingSourceHost`
+- [x] Tests del adaptador con `Http::fake` (paginación, base64, 401, 404, límite)
