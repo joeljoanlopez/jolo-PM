@@ -1,9 +1,14 @@
 // Adaptador del puerto ProjectsGateway sobre la API REST del backend.
 import type { ProjectBoard, ProjectInput, ProjectListItem, Repository } from "../domain/model";
 import { GatewayError, type ProjectsGateway } from "../ports/ProjectsGateway";
+import { messages, type Language } from "../i18n/messages";
 
 export class HttpProjectsGateway implements ProjectsGateway {
-  constructor(private readonly baseUrl = "/api") {}
+  /** `language` da el idioma de cada petición: la API responde los errores en él. */
+  constructor(
+    private readonly baseUrl = "/api",
+    private readonly language: () => Language = () => "es",
+  ) {}
 
   listProjects() {
     return this.request<ProjectListItem[]>("GET", "/projects");
@@ -35,15 +40,16 @@ export class HttpProjectsGateway implements ProjectsGateway {
   }
 
   private async request<T>(method: string, path: string, body?: unknown): Promise<T> {
+    const language = this.language();
     let response: Response;
     try {
       response = await fetch(this.baseUrl + path, {
         method,
-        headers: { Accept: "application/json", ...(body ? { "Content-Type": "application/json" } : {}) },
+        headers: { Accept: "application/json", "Accept-Language": language, ...(body ? { "Content-Type": "application/json" } : {}) },
         body: body ? JSON.stringify(body) : undefined,
       });
     } catch {
-      throw new GatewayError("No se puede conectar con el servidor.", 0, "network");
+      throw new GatewayError(messages[language].errors.network, 0, "network");
     }
 
     if (response.status === 204) return null as T;
@@ -52,7 +58,7 @@ export class HttpProjectsGateway implements ProjectsGateway {
     if (!response.ok) {
       const error = (data as { error?: { code?: string; message?: string; fields?: Record<string, string> } } | null)?.error;
       throw new GatewayError(
-        error?.message ?? `Error ${response.status}`,
+        error?.message ?? messages[language].errors.http(response.status),
         response.status,
         error?.code ?? "http_error",
         error?.fields ?? {},

@@ -87,7 +87,7 @@ final class GitHubSourceHostTest extends TestCase
             $this->host()->repository('o', 'r');
             $this->fail();
         } catch (SourceUnavailable $e) {
-            $this->assertStringContainsString('401', $e->getMessage());
+            $this->assertSame('token_rejected', $e->reason->key);
         }
 
         $this->expectException(SourceUnavailable::class);
@@ -98,7 +98,7 @@ final class GitHubSourceHostTest extends TestCase
     {
         Http::fake(['*' => Http::response(['message' => 'API rate limit exceeded'], 403, ['X-RateLimit-Remaining' => '0'])]);
 
-        $this->expectExceptionMessage('Límite de peticiones');
+        $this->expectExceptionMessage('rate_limited');
         $this->host()->repository('o', 'r');
     }
 }

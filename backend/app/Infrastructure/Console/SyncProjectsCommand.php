@@ -7,6 +7,7 @@ namespace App\Infrastructure\Console;
 use App\Application\SyncAllProjects;
 use App\Application\SyncProject;
 use App\Domain\Exception\DomainException;
+use App\Infrastructure\I18n\Translator;
 use Illuminate\Console\Command;
 
 /** Adaptador de entrada por consola. El scheduler lo lanza cada SYNC_CRON. */
@@ -23,7 +24,7 @@ final class SyncProjectsCommand extends Command
             try {
                 $board = $syncOne->execute((int) $id);
             } catch (DomainException $e) {
-                $this->error($e->getMessage());
+                $this->error(Translator::translate($e->reason));
 
                 return self::FAILURE;
             }
@@ -38,7 +39,7 @@ final class SyncProjectsCommand extends Command
                 $this->line("✓ $repository");
             } else {
                 $failed++;
-                $this->error("✗ $repository: $error");
+                $this->error("✗ $repository: " . Translator::translate($error));
             }
         }
 

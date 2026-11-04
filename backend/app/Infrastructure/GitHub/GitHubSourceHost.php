@@ -7,6 +7,7 @@ namespace App\Infrastructure\GitHub;
 use App\Domain\Exception\RepositoryNotAccessible;
 use App\Domain\Exception\SourceUnavailable;
 use App\Domain\Model\FileRef;
+use App\Domain\Model\Message;
 use App\Domain\Model\PullRequest;
 use App\Domain\Model\RepositoryInfo;
 use App\Domain\Port\SourceHost;
@@ -33,7 +34,7 @@ final class GitHubSourceHost implements SourceHost
 
     public function repository(string $owner, string $name): RepositoryInfo
     {
-        return $this->toRepositoryInfo($this->get("/repos/$owner/$name", "el repositorio $owner/$name")->json());
+        return $this->toRepositoryInfo($this->get("/repos/$owner/$name", self::resource('repository', $owner, $name))->json());
     }
 
     public function accessibleRepositories(): array
@@ -41,7 +42,7 @@ final class GitHubSourceHost implements SourceHost
         $items = $this->getAllPages('/user/repos', [
             'affiliation' => 'owner,collaborator,organization_member',
             'sort' => 'full_name',
-        ], 'tus repositorios');
+        ], new Message('resource.repositories'));
 
         return array_map($this->toRepositoryInfo(...), $items);
     }
@@ -50,7 +51,7 @@ final class GitHubSourceHost implements SourceHost
     {
         $tree = $this->get(
             "/repos/$owner/$name/git/trees/" . rawurlencode($branch),
-            "la rama $branch de $owner/$name",
+            self::resource('branch', $owner, $name, ['branch' => $branch]),
             ['recursive' => '1'],
         )->json();
 
@@ -66,7 +67,7 @@ final class GitHubSourceHost implements SourceHost
 
     public function blob(string $owner, string $name, string $sha): string
     {
-        $blob = $this->get("/repos/$owner/$name/git/blobs/$sha", "el fichero $sha de $owner/$name")->json();
+        $blob = $this->get("/repos/$owner/$name/git/blobs/$sha", self::resource('blob', $owner, $name, ['sha' => $sha]))->json();
         if (($blob['encoding'] ?? '') !== 'base64') {
             return (string) ($blob['content'] ?? '');
         }
@@ -79,7 +80,7 @@ final class GitHubSourceHost implements SourceHost
         $items = $this->getAllPages(
             "/repos/$owner/$name/pulls",
             ['state' => 'open', 'base' => $base],
-            "las PRs de $owner/$name",
+            self::resource('pulls', $owner, $name),
         );
 
         return array_map(static fn (array $pr) => new PullRequest(
@@ -93,7 +94,7 @@ final class GitHubSourceHost implements SourceHost
 
     public function pullRequestFiles(string $owner, string $name, int $number): array
     {
-        $items = $this->getAllPages("/repos/$owner/$name/pulls/$number/files", [], "la PR #$number de $owner/$name");
+        $items = $this->getAllPages("/repos/$owner/$name/pulls/$number/files", [], self::resource('pull', $owner, $name, ['number' => $number]));
 
         $files = [];
         foreach ($items as $file) {
@@ -125,7 +126,7 @@ final class GitHubSourceHost implements SourceHost
      * @param array<string, string> $query
      * @return list<array<string, mixed>>
      */
-    private function getAllPages(string $path, array $query, string $what): array
+    private function getAllPages(string $path, array $query, Message $what): array
     {
         $items = [];
         $url = $this->baseUrl . $path;
@@ -143,16 +144,16 @@ final class GitHubSourceHost implements SourceHost
     }
 
     /** @param array<string, string> $query */
-    private function get(string $path, string $what, array $query = []): Response
+    private function get(string $path, Message $what, array $query = []): Response
     {
         return $this->send($this->baseUrl . $path, $query, $what);
     }
 
     /** @param array<string, string> $query */
-    private function send(string $url, array $query, string $what): Response
+    private function send(string $url, array $query, Message $what): Response
     {
         if ($this->token === '') {
-            throw new SourceUnavailable('Falta GITHUB_TOKEN: configúralo en el .env del servidor.');
+            throw SourceUnavailable::missingToken();
         }
 
         try {
@@ -162,7 +163,7 @@ final class GitHubSourceHost implements SourceHost
                 ? $this->client()->get($url)
                 : $this->client()->get($url, $query);
         } catch (ConnectionException $e) {
-            throw new SourceUnavailable('No se puede conectar con GitHub: ' . $e->getMessage(), 0, $e);
+            throw SourceUnavailable::connectionFailed($e->getMessage(), $e);
         }
 
         if ($response->successful()) {
@@ -174,10 +175,10 @@ final class GitHubSourceHost implements SourceHost
             $response->status() === 404 => new RepositoryNotAccessible($what),
             // GitHub responde 422 cuando la rama del árbol no existe.
             $response->status() === 422 => new RepositoryNotAccessible($what),
-            $response->status() === 401 => new SourceUnavailable('GitHub rechaza el token (401). Revisa GITHUB_TOKEN.'),
+            $response->status() === 401 => SourceUnavailable::tokenRejected(),
             in_array($response->status(), [403, 429], true) && $response->header('X-RateLimit-Remaining') === '0'
-                => new SourceUnavailable('Límite de peticiones de GitHub agotado; se reintentará en la próxima sincronización.'),
-            default => new SourceUnavailable("GitHub ha respondido {$response->status()} al leer $what: $message"),
+                => SourceUnavailable::rateLimited(),
+            default => SourceUnavailable::unexpectedResponse($response->status(), $what, $message),
         };
     }
 
@@ -192,6 +193,12 @@ final class GitHubSourceHost implements SourceHost
             ])
             ->connectTimeout(5)
             ->timeout(20);
+    }
+
+    /** @param array<string, string|int> $params */
+    private static function resource(string $kind, string $owner, string $name, array $params = []): Message
+    {
+        return new Message("resource.$kind", ['repository' => "$owner/$name", ...$params]);
     }
 
     private static function nextPage(string $link): ?string

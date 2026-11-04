@@ -3,8 +3,10 @@ import { groupBySection, plainTaskText } from "../../domain/board";
 import type { BoardTask, Card } from "../../domain/model";
 import { ProgressBar } from "../components/ProgressBar";
 import { Modal } from "../components/ui";
+import { useI18n } from "../i18n";
 
 export function CardDetail({ card, onClose }: { card: Card; onClose: () => void }) {
+  const { t } = useI18n();
   const prsByNumber = new Map(card.pullRequests.map((pr) => [pr.number, pr]));
 
   return (
@@ -30,7 +32,7 @@ export function CardDetail({ card, onClose }: { card: Card; onClose: () => void 
           {card.pullRequests.map((pr) => (
             <li key={pr.number}>
               <a href={pr.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-sm text-amber-700 hover:underline dark:text-amber-400">
-                <GitPullRequest className="size-4" aria-hidden /> #{pr.number} {pr.title}{pr.draft && " (borrador)"}
+                <GitPullRequest className="size-4" aria-hidden /> #{pr.number} {pr.title}{pr.draft && ` (${t.common.draft})`}
               </a>
             </li>
           ))}
@@ -54,9 +56,10 @@ export function CardDetail({ card, onClose }: { card: Card; onClose: () => void 
 }
 
 function TaskRow({ task, url, prs }: { task: BoardTask; url: string; prs: Card["pullRequests"] }) {
+  const { t } = useI18n();
   const Icon = task.state === "done" ? CheckSquare2 : task.state === "review" ? Clock : Square;
   const iconColor = task.state === "done" ? "text-emerald-600 dark:text-emerald-400" : task.state === "review" ? "text-amber-500" : "text-zinc-400";
-  const label = task.state === "done" ? "Hecha" : task.state === "review" ? "En revisión" : "Pendiente";
+  const label = t.task[task.state];
 
   return (
     <li className="flex items-start gap-2 text-sm" style={{ paddingLeft: `${task.depth * 1.25}rem` }}>

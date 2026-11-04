@@ -1,10 +1,13 @@
 import { KanbanSquare } from "lucide-react";
 import { useRoute } from "./hooks";
+import { useI18n } from "./i18n";
+import { LanguageSwitcher } from "./components/LanguageSwitcher";
 import { ProjectsPage } from "./projects/ProjectsPage";
 import { BoardPage } from "./board/BoardPage";
 
 export function App() {
   const route = useRoute();
+  const { t } = useI18n();
 
   return (
     <div className="min-h-screen">
@@ -14,7 +17,10 @@ export function App() {
             <KanbanSquare className="size-5 text-indigo-600 dark:text-indigo-400" aria-hidden />
             jolo-PM
           </a>
-          <span className="hidden text-sm text-zinc-500 sm:inline">· progreso leído de tus markdowns</span>
+          <span className="hidden text-sm text-zinc-500 sm:inline">· {t.app.tagline}</span>
+          <div className="ml-auto">
+            <LanguageSwitcher />
+          </div>
         </div>
       </header>
       <main className="mx-auto max-w-7xl px-4 py-6">

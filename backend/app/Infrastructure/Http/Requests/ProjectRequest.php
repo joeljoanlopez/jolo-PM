@@ -29,19 +29,11 @@ class ProjectRequest extends FormRequest
 
     public function attributes(): array
     {
-        return ['repository' => 'repositorio', 'branch' => 'rama', 'paths' => 'rutas', 'name' => 'nombre'];
+        return __('errors.attributes');
     }
 
-    /** En castellano aquí mismo, sin publicar ficheros de idioma para cinco mensajes. */
     public function messages(): array
     {
-        return [
-            'required' => 'Falta el campo :attribute.',
-            'paths.min' => 'Indica al menos una ruta o glob, por ejemplo docs/**/*.md.',
-            'array' => 'El campo :attribute debe ser una lista.',
-            'string' => 'El campo :attribute debe ser texto.',
-            'max' => 'El campo :attribute es demasiado largo.',
-            'prohibited' => 'El :attribute no se puede cambiar; da de alta otro proyecto.',
-        ];
+        return __('errors.request');
     }
 }

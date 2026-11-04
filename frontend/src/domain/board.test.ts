@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { groupBySection, groupByStatus, plainTaskText, progress, relativeTime } from "./board";
+import { age, groupBySection, groupByStatus, plainTaskText, progress } from "./board";
 import type { BoardTask, Card } from "./model";
 
 const task = (section: string | null, text = "t"): BoardTask => ({ text, depth: 0, line: 1, section, state: "pending", prs: [] });
@@ -22,11 +22,12 @@ describe("board", () => {
     expect(groups.map((g) => [g.section, g.tasks.length])).toEqual([["A", 2], ["B", 1], ["A", 1]]);
   });
 
-  it("formatea tiempos relativos", () => {
+  it("calcula la antigüedad redondeada", () => {
     const now = new Date("2026-11-04T12:00:00Z");
-    expect(relativeTime(null, now)).toBe("nunca");
-    expect(relativeTime("2026-11-04T11:57:00Z", now)).toBe("hace 3 min");
-    expect(relativeTime("2026-11-04T09:00:00Z", now)).toBe("hace 3 h");
+    expect(age(null, now)).toBeNull();
+    expect(age("2026-11-04T11:59:50Z", now)).toEqual({ unit: "now" });
+    expect(age("2026-11-04T11:57:00Z", now)).toEqual({ unit: "minutes", value: 3 });
+    expect(age("2026-11-04T09:00:00Z", now)).toEqual({ unit: "hours", value: 3 });
   });
 
   it("limpia enlaces y negritas del texto", () => {

@@ -1,6 +1,7 @@
 // Piezas visuales pequeñas reutilizadas en varias pantallas.
 import { AlertTriangle, Loader2, X } from "lucide-react";
 import { useEffect, type ButtonHTMLAttributes, type ReactNode } from "react";
+import { useI18n } from "../i18n";
 
 type Variant = "primary" | "secondary" | "danger" | "ghost";
 
@@ -40,6 +41,7 @@ export function ErrorBanner({ children }: { children: ReactNode }) {
 }
 
 export function Modal({ title, onClose, children, wide = false }: { title: ReactNode; onClose: () => void; children: ReactNode; wide?: boolean }) {
+  const { t } = useI18n();
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", onKey);
@@ -60,7 +62,7 @@ export function Modal({ title, onClose, children, wide = false }: { title: React
       >
         <div className="flex items-start justify-between gap-4 border-b border-zinc-200 px-4 py-3 dark:border-zinc-800">
           <div className="min-w-0 font-semibold">{title}</div>
-          <Button variant="ghost" className="-mr-2 !p-1" onClick={onClose} aria-label="Cerrar">
+          <Button variant="ghost" className="-mr-2 !p-1" onClick={onClose} aria-label={t.common.close}>
             <X className="size-4" />
           </Button>
         </div>

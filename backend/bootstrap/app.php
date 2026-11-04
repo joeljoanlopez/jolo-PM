@@ -14,7 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
     // Los comandos de consola son adaptadores de entrada: viven en Infrastructure.
     ->withCommands([__DIR__.'/../app/Infrastructure/Console'])
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        $middleware->append(\App\Infrastructure\Http\Middleware\UseRequestLanguage::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // Es una API pura: los errores siempre en JSON, nunca páginas HTML.
