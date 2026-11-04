@@ -26,16 +26,16 @@ final class Project implements \JsonSerializable
     ) {
         $errors = [];
         if (!preg_match(self::SLUG, $owner) || !preg_match(self::SLUG, $name)) {
-            $errors['repository'] = 'El repositorio debe tener la forma "propietario/nombre".';
+            $errors['repository'] = new Message('validation.repository_format');
         }
         if ($branch !== null && ($branch === '' || preg_match('/[\s~^:?*\[\\\\]|\.\./', $branch))) {
-            $errors['branch'] = 'Nombre de rama no válido.';
+            $errors['branch'] = new Message('validation.branch_invalid');
         }
         if ($paths === []) {
-            $errors['paths'] = 'Indica al menos una ruta o glob, por ejemplo docs/**/*.md.';
+            $errors['paths'] = new Message('validation.paths_required');
         }
         if ($displayName !== null && mb_strlen($displayName) > 100) {
-            $errors['name'] = 'El nombre no puede pasar de 100 caracteres.';
+            $errors['name'] = new Message('validation.name_too_long');
         }
         if ($errors !== []) {
             throw new ValidationFailed($errors);

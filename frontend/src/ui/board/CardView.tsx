@@ -2,8 +2,10 @@ import { GitPullRequest } from "lucide-react";
 import { plainTaskText } from "../../domain/board";
 import type { Card } from "../../domain/model";
 import { ProgressBar } from "../components/ProgressBar";
+import { useI18n } from "../i18n";
 
 export function CardView({ card, onOpen }: { card: Card; onOpen: () => void }) {
+  const { t } = useI18n();
   return (
     <button
       type="button"
@@ -20,7 +22,7 @@ export function CardView({ card, onOpen }: { card: Card; onOpen: () => void }) {
         <div className="mt-2 flex flex-wrap gap-1">
           {card.pullRequests.map((pr) => (
             <span key={pr.number} className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-medium text-amber-800 dark:bg-amber-900/40 dark:text-amber-300" title={pr.title}>
-              <GitPullRequest className="size-3" aria-hidden />#{pr.number}{pr.draft && " · borrador"}
+              <GitPullRequest className="size-3" aria-hidden />#{pr.number}{pr.draft && ` · ${t.common.draft}`}
             </span>
           ))}
         </div>

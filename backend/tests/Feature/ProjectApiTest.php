@@ -125,4 +125,42 @@ final class ProjectApiTest extends TestCase
             ->assertJsonPath('board.summary.total', 3)
             ->assertJsonPath('error', fn ($e) => str_contains((string) $e, 'GitHub'));
     }
+
+    public function test_errors_follow_the_request_language(): void
+    {
+        $this->postJson('/api/projects', ['repository' => 'otro/repo', 'paths' => ['*.md']], ['Accept-Language' => 'en-GB,en;q=0.9'])
+            ->assertStatus(422)
+            ->assertJsonPath('error.message', 'GitHub cannot find the repository otro/repo or the token has no access to it.');
+
+        $this->postJson('/api/projects', ['paths' => ['*.md']], ['Accept-Language' => 'en'])
+            ->assertStatus(422)
+            ->assertJsonPath('error.fields.repository', 'The repository field is required.');
+
+        // Sin cabecera, o con un idioma que no hay, en castellano.
+        $this->postJson('/api/projects', ['paths' => ['*.md']], ['Accept-Language' => 'fr'])
+            ->assertStatus(422)
+            ->assertJsonPath('error.fields.repository', 'Falta el campo repositorio.');
+        $this->getJson('/api/projects/999/board', ['Accept-Language' => ''])
+            ->assertJsonPath('error.message', 'No existe el proyecto 999.');
+    }
+
+    public function test_saved_sync_error_is_translated_when_read(): void
+    {
+        $id = $this->postJson('/api/projects', ['repository' => 'o/r', 'paths' => ['docs/plan/*.md']])->json('project.id');
+        $this->app->instance(SourceHost::class, new class ($this->github) extends \Tests\Support\FailingSourceHost {});
+        $this->postJson("/api/projects/$id/sync");
+
+        $this->getJson("/api/projects/$id/board", ['Accept-Language' => 'en'])
+            ->assertJsonPath('error', 'Cannot connect to GitHub: timeout');
+        $this->getJson('/api/projects', ['Accept-Language' => 'es'])
+            ->assertJsonPath('0.error', 'No se puede conectar con GitHub: timeout');
+    }
+
+    public function test_errors_saved_before_translations_are_shown_as_is(): void
+    {
+        $id = $this->postJson('/api/projects', ['repository' => 'o/r', 'paths' => ['docs/plan/*.md']])->json('project.id');
+        \App\Infrastructure\Persistence\Models\BoardSnapshot::where('project_id', $id)->update(['error' => 'Texto antiguo.']);
+
+        $this->getJson("/api/projects/$id/board", ['Accept-Language' => 'en'])->assertJsonPath('error', 'Texto antiguo.');
+    }
 }

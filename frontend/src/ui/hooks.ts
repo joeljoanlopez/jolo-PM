@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useI18n } from "./i18n";
 
 /**
  * Carga datos asíncronos con recarga manual y, opcionalmente, periódica.
  * Las recargas no vacían los datos: se sigue viendo lo anterior mientras llega lo nuevo.
+ * Al cambiar de idioma también recarga, porque los errores de la API vienen traducidos.
  */
 export function useAsync<T>(load: () => Promise<T>, deps: unknown[], refreshMs?: number) {
   const [data, setData] = useState<T | null>(null);
@@ -33,6 +35,14 @@ export function useAsync<T>(load: () => Promise<T>, deps: unknown[], refreshMs?:
     return () => window.clearInterval(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);
+
+  const { language } = useI18n();
+  const loadedLanguage = useRef(language);
+  useEffect(() => {
+    if (language === loadedLanguage.current) return;
+    loadedLanguage.current = language;
+    void reload();
+  }, [language, reload]);
 
   return { data, setData, error, loading, reload };
 }

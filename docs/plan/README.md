@@ -36,6 +36,7 @@ Este plan se sigue a sí mismo: jolo-PM está dado de alta en jolo-PM con la rut
 | E09 | [Mejoras futuras](E09-mejoras-futuras.md) | Backlog |
 | E10 | [Login con 2FA](E10-login-2fa.md) | Seguridad |
 | E11 | [Despliegue automático](E11-despliegue-automatico.md) | Infra |
+| E12 | [Idiomas: castellano e inglés](E12-idiomas.md) | Frontend |
 
 Este README no lleva casillas a propósito: el progreso global lo calcula el
 tablero, no hay que mantenerlo a mano.

@@ -1,12 +1,8 @@
 // Reglas de presentación puras (sin React): fáciles de testear y de cambiar.
 import type { BoardTask, Card, CardStatus, Summary } from "./model";
 
-export const COLUMNS: { status: CardStatus; label: string }[] = [
-  { status: "todo", label: "Por hacer" },
-  { status: "in_progress", label: "En curso" },
-  { status: "review", label: "En revisión" },
-  { status: "done", label: "Hecho" },
-];
+/** Columnas del tablero en orden. Sus nombres están en i18n/messages. */
+export const COLUMNS: CardStatus[] = ["todo", "in_progress", "review", "done"];
 
 export function groupByStatus(cards: Card[]): Record<CardStatus, Card[]> {
   const groups: Record<CardStatus, Card[]> = { todo: [], in_progress: [], review: [], done: [] };
@@ -31,17 +27,18 @@ export function groupBySection(tasks: BoardTask[]): { section: string | null; ta
   return groups;
 }
 
-/** "hace 3 min", "hace 2 h"… */
-export function relativeTime(iso: string | null, now: Date = new Date()): string {
-  if (!iso) return "nunca";
+/** Antigüedad redondeada, sin texto: el idioma la formatea en i18n/messages. */
+export type Age = { unit: "now" } | { unit: "minutes" | "hours" | "days"; value: number };
+
+export function age(iso: string | null, now: Date = new Date()): Age | null {
+  if (!iso) return null;
   const seconds = Math.round((now.getTime() - new Date(iso).getTime()) / 1000);
-  if (seconds < 45) return "hace un momento";
+  if (seconds < 45) return { unit: "now" };
   const minutes = Math.round(seconds / 60);
-  if (minutes < 60) return `hace ${minutes} min`;
+  if (minutes < 60) return { unit: "minutes", value: minutes };
   const hours = Math.round(minutes / 60);
-  if (hours < 24) return `hace ${hours} h`;
-  const days = Math.round(hours / 24);
-  return `hace ${days} d`;
+  if (hours < 24) return { unit: "hours", value: hours };
+  return { unit: "days", value: Math.round(hours / 24) };
 }
 
 /** Quita el formato markdown de enlace/énfasis para mostrar el texto de una tarea. */

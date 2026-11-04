@@ -10,18 +10,20 @@ use App\Application\RemoveProject;
 use App\Application\SyncProject;
 use App\Application\UpdateProject;
 use App\Infrastructure\Http\Requests\ProjectRequest;
+use App\Infrastructure\I18n\Translator;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
 
 /**
  * Adaptador de entrada HTTP: traduce peticiones a casos de uso y su resultado
- * a JSON. Sin lógica de negocio; los errores los traduce bootstrap/app.php.
+ * a JSON. Sin lógica de negocio; las excepciones las traduce bootstrap/app.php
+ * y el error guardado de la última sincronización, Translator.
  */
 final class ProjectController
 {
     public function index(ProjectOverview $overview): JsonResponse
     {
-        return response()->json($overview->list());
+        return response()->json(array_map(Translator::translateErrorIn(...), $overview->list()));
     }
 
     public function store(ProjectRequest $request, AddProject $add, ProjectOverview $overview): JsonResponse
@@ -33,14 +35,14 @@ final class ProjectController
             $request->input('name'),
         );
 
-        return response()->json($overview->board((int) $project->id), 201);
+        return response()->json(Translator::translateErrorIn($overview->board((int) $project->id)), 201);
     }
 
     public function update(int $id, ProjectRequest $request, UpdateProject $update, ProjectOverview $overview): JsonResponse
     {
         $update->execute($id, $request->input('branch'), $request->input('paths'), $request->input('name'));
 
-        return response()->json($overview->board($id));
+        return response()->json(Translator::translateErrorIn($overview->board($id)));
     }
 
     public function destroy(int $id, RemoveProject $remove): Response
@@ -54,11 +56,11 @@ final class ProjectController
     {
         $sync->execute($id);
 
-        return response()->json($overview->board($id));
+        return response()->json(Translator::translateErrorIn($overview->board($id)));
     }
 
     public function board(int $id, ProjectOverview $overview): JsonResponse
     {
-        return response()->json($overview->board($id));
+        return response()->json(Translator::translateErrorIn($overview->board($id)));
     }
 }

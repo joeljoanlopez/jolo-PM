@@ -72,7 +72,7 @@ final class SyncProject
                 new \DateTimeImmutable(),
             );
         } catch (DomainException $e) {
-            $this->boards->saveError($projectId, $e->getMessage(), new \DateTimeImmutable());
+            $this->boards->saveError($projectId, $e->reason, new \DateTimeImmutable());
             throw $e;
         }
 

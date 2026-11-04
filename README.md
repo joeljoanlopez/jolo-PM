@@ -73,6 +73,9 @@ leer (uno por línea) y, si quieres, una rama distinta de la principal.
 El worker sincroniza todos los proyectos cada 5 minutos (`SYNC_CRON`); el botón
 **Sincronizar** lo hace al momento.
 
+La web está en castellano y en inglés: el selector **ES | EN** de la cabecera
+cambia el idioma y se recuerda en el navegador.
+
 ## Desarrollo
 
 Arquitectura hexagonal en backend y frontend; ver

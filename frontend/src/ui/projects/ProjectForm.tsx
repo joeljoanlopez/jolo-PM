@@ -5,6 +5,7 @@ import { GatewayError } from "../../ports/ProjectsGateway";
 import { Button, ErrorBanner, Spinner } from "../components/ui";
 import { useGateway } from "../gateway";
 import { useAsync } from "../hooks";
+import { useI18n } from "../i18n";
 
 const DEFAULT_PATHS = "docs/**/*.md";
 
@@ -19,6 +20,7 @@ export function ProjectForm({
   onCancel: () => void;
 }) {
   const gateway = useGateway();
+  const { t } = useI18n();
   const editing = project !== undefined;
 
   const [repository, setRepository] = useState(project?.repository ?? "");
@@ -51,14 +53,14 @@ export function ProjectForm({
   return (
     <form onSubmit={submit} className="space-y-4">
       {editing ? (
-        <Field label="Repositorio">
+        <Field label={t.form.repository}>
           <p className="font-mono text-sm">{project.repository}</p>
         </Field>
       ) : (
         <RepositoryPicker value={repository} onChange={setRepository} error={fields.repository} />
       )}
 
-      <Field label="Ficheros a leer" hint="Un glob por línea. * no cruza carpetas, ** sí." error={fields.paths ?? fields["paths.0"]}>
+      <Field label={t.form.paths} hint={t.form.pathsHint} error={fields.paths ?? fields["paths.0"]}>
         <textarea
           value={paths}
           onChange={(e) => setPaths(e.target.value)}
@@ -71,10 +73,10 @@ export function ProjectForm({
       </Field>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <Field label="Rama" hint="Vacío = la principal del repo" error={fields.branch}>
+        <Field label={t.form.branch} hint={t.form.branchHint} error={fields.branch}>
           <input value={branch} onChange={(e) => setBranch(e.target.value)} className={inputClass} placeholder="main" spellCheck={false} />
         </Field>
-        <Field label="Nombre" hint="Vacío = el del repo" error={fields.name}>
+        <Field label={t.form.name} hint={t.form.nameHint} error={fields.name}>
           <input value={name} onChange={(e) => setName(e.target.value)} className={inputClass} maxLength={100} />
         </Field>
       </div>
@@ -82,9 +84,9 @@ export function ProjectForm({
       {error && Object.keys(fields).length === 0 && <ErrorBanner>{error.message}</ErrorBanner>}
 
       <div className="flex justify-end gap-2 pt-2">
-        <Button onClick={onCancel} disabled={saving}>Cancelar</Button>
+        <Button onClick={onCancel} disabled={saving}>{t.common.cancel}</Button>
         <Button type="submit" variant="primary" disabled={saving || (!editing && repository.trim() === "")}>
-          {saving && <Spinner />} {editing ? "Guardar y sincronizar" : "Añadir y sincronizar"}
+          {saving && <Spinner />} {editing ? t.form.save : t.form.create}
         </Button>
       </div>
     </form>
@@ -93,6 +95,7 @@ export function ProjectForm({
 
 function RepositoryPicker({ value, onChange, error }: { value: string; onChange: (v: string) => void; error?: string }) {
   const gateway = useGateway();
+  const { t } = useI18n();
   const repos = useAsync(() => gateway.listRepositories(), []);
   const [open, setOpen] = useState(false);
 
@@ -102,7 +105,7 @@ function RepositoryPicker({ value, onChange, error }: { value: string; onChange:
   }, [repos.data, value]);
 
   return (
-    <Field label="Repositorio" hint="Busca entre los repos a los que tiene acceso el token, o escribe propietario/nombre." error={error ?? repos.error?.message}>
+    <Field label={t.form.repository} hint={t.form.repositoryHint} error={error ?? repos.error?.message}>
       <div className="relative">
         <Search className="pointer-events-none absolute top-2.5 left-2.5 size-4 text-zinc-400" aria-hidden />
         <input
@@ -114,7 +117,7 @@ function RepositoryPicker({ value, onChange, error }: { value: string; onChange:
           onFocus={() => setOpen(true)}
           onBlur={() => window.setTimeout(() => setOpen(false), 150)}
           className={inputClass + " pl-8"}
-          placeholder="propietario/repositorio"
+          placeholder={t.form.repositoryPlaceholder}
           spellCheck={false}
           autoComplete="off"
           required
@@ -142,7 +145,7 @@ function RepositoryPicker({ value, onChange, error }: { value: string; onChange:
                     <span className="block truncate font-mono">{r.fullName}</span>
                     {r.description && <span className="block truncate text-xs text-zinc-500">{r.description}</span>}
                   </span>
-                  {r.private && <Lock className="mt-0.5 size-3.5 shrink-0 text-zinc-400" aria-label="Privado" />}
+                  {r.private && <Lock className="mt-0.5 size-3.5 shrink-0 text-zinc-400" aria-label={t.form.private} />}
                 </button>
               </li>
             ))}

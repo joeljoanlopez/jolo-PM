@@ -22,26 +22,26 @@ class FailingSourceHost implements SourceHost
 
     public function accessibleRepositories(): array
     {
-        throw new SourceUnavailable('GitHub no responde.');
+        throw SourceUnavailable::connectionFailed('timeout');
     }
 
     public function markdownFiles(string $owner, string $name, string $branch): array
     {
-        throw new SourceUnavailable('GitHub no responde.');
+        throw SourceUnavailable::connectionFailed('timeout');
     }
 
     public function blob(string $owner, string $name, string $sha): string
     {
-        throw new SourceUnavailable('GitHub no responde.');
+        throw SourceUnavailable::connectionFailed('timeout');
     }
 
     public function openPullRequests(string $owner, string $name, string $base): array
     {
-        throw new SourceUnavailable('GitHub no responde.');
+        throw SourceUnavailable::connectionFailed('timeout');
     }
 
     public function pullRequestFiles(string $owner, string $name, int $number): array
     {
-        throw new SourceUnavailable('GitHub no responde.');
+        throw SourceUnavailable::connectionFailed('timeout');
     }
 }

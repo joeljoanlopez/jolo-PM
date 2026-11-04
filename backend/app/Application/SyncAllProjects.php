@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application;
 
 use App\Domain\Exception\DomainException;
+use App\Domain\Model\Message;
 use App\Domain\Port\ProjectRepository;
 
 final class SyncAllProjects
@@ -18,7 +19,7 @@ final class SyncAllProjects
     /**
      * Un proyecto que falla no impide sincronizar los demás.
      *
-     * @return array<string, ?string> repositorio => null si fue bien, o el error
+     * @return array<string, ?Message> repositorio => null si fue bien, o el error
      */
     public function execute(): array
     {
@@ -28,7 +29,7 @@ final class SyncAllProjects
                 $this->sync->execute((int) $project->id);
                 $results[$project->fullName()] = null;
             } catch (DomainException $e) {
-                $results[$project->fullName()] = $e->getMessage();
+                $results[$project->fullName()] = $e->reason;
             }
         }
 

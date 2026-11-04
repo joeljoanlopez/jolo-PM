@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Support;
 
 use App\Domain\Exception\RepositoryNotAccessible;
+use App\Domain\Model\Message;
 use App\Domain\Model\FileRef;
 use App\Domain\Model\PullRequest;
 use App\Domain\Model\RepositoryInfo;
@@ -25,7 +26,7 @@ final class FakeSourceHost implements SourceHost
     public function repository(string $owner, string $name): RepositoryInfo
     {
         if ("$owner/$name" !== 'o/r') {
-            throw new RepositoryNotAccessible("el repositorio $owner/$name");
+            throw new RepositoryNotAccessible(new Message('resource.repository', ['repository' => "$owner/$name"]));
         }
 
         return new RepositoryInfo('o', 'r', 'main', true, 'https://github.com/o/r');
@@ -51,7 +52,7 @@ final class FakeSourceHost implements SourceHost
                 }
             }
         }
-        throw new RepositoryNotAccessible("el blob $sha");
+        throw new RepositoryNotAccessible(new Message('resource.blob', ['sha' => $sha, 'repository' => "$owner/$name"]));
     }
 
     public function openPullRequests(string $owner, string $name, string $base): array
