@@ -1,0 +1,73 @@
+name: jolo-pm
+
+# Backend y worker son la misma imagen y la misma configuración; solo cambia el
+# proceso que arrancan.
+x-backend-env: &backend-env
+  TZ: ${TZ:-Europe/Madrid}
+  APP_NAME: jolo-PM
+  APP_ENV: production
+  APP_DEBUG: "false"
+  LOG_CHANNEL: stderr
+  DB_CONNECTION: sqlite
+  DB_DATABASE: /data/jolo-pm.sqlite
+  CACHE_STORE: file
+  SESSION_DRIVER: array
+  QUEUE_CONNECTION: sync
+  # `:?` para no arrancar con un token vacío y fallar en cada sincronización.
+  GITHUB_TOKEN: ${GITHUB_TOKEN:?define GITHUB_TOKEN en .env (ver .env.example)}
+  SYNC_CRON: ${SYNC_CRON:-*/5 * * * *}
+  BLOB_TTL_DAYS: ${BLOB_TTL_DAYS:-30}
+
+x-backend: &backend
+  build:
+    context: ./backend
+  image: jolo-pm-backend
+  user: "${PUID:-1000}:${PGID:-1000}"
+  volumes:
+    - ${JOLOPM_DATA_DIR:-./data}:/data
+  restart: unless-stopped
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+    container_name: jolo-pm-frontend
+    restart: unless-stopped
+    ports:
+      # Solo en localhost: se expone con el proxy inverso del host
+      # (labels de nginx-autoconf), que además restringe a LAN y Tailscale.
+      - "127.0.0.1:${JOLOPM_PORT:-8095}:80"
+    labels:
+      - "nginx.autoconf=true"
+      - "nginx.domain=jolo-pm"
+    depends_on:
+      - backend
+    deploy:
+      resources:
+        limits:
+          memory: 32M
+
+  backend:
+    <<: *backend
+    container_name: jolo-pm-backend
+    environment:
+      <<: *backend-env
+      RUN_MIGRATIONS: "1"
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+
+  # Sincroniza todos los proyectos cada SYNC_CRON con el scheduler de Laravel.
+  worker:
+    <<: *backend
+    container_name: jolo-pm-worker
+    command: ["php", "artisan", "schedule:work"]
+    environment: *backend-env
+    init: true
+    depends_on:
+      - backend
+    deploy:
+      resources:
+        limits:
+          memory: 128M

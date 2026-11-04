@@ -1,0 +1,12 @@
+# Configuración local y secretos. Ver .env.example.
+.env
+
+# Estado de ejecución: base de datos SQLite.
+data/
+
+# Dependencias y artefactos de build.
+backend/vendor/
+frontend/node_modules/
+frontend/dist/
+
+.claude/
