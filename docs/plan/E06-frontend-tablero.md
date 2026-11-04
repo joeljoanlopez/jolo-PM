@@ -20,10 +20,10 @@ tarjeta sin salir del tablero.
 - El tablero de PKManagement y el de jolo-PM se ven correctamente.
 
 ## Subtareas
-- [ ] Tipos de la API y cliente `fetch` tipado
-- [ ] Enrutado por hash (`#/`, `#/projects/{id}`) sin dependencias extra
-- [ ] Vista de inicio con resumen de proyectos
-- [ ] Tablero de columnas y tarjetas con barra de progreso
-- [ ] Detalle de tarjeta con tareas por sección y enlaces a PRs
-- [ ] Sincronización manual, refresco automático y estados de carga y error
-- [ ] Diseño adaptable y modo oscuro
+- [x] Tipos de la API y cliente `fetch` tipado
+- [x] Enrutado por hash (`#/`, `#/projects/{id}`) sin dependencias extra
+- [x] Vista de inicio con resumen de proyectos
+- [x] Tablero de columnas y tarjetas con barra de progreso
+- [x] Detalle de tarjeta con tareas por sección y enlaces a PRs
+- [x] Sincronización manual, refresco automático y estados de carga y error
+- [x] Diseño adaptable y modo oscuro
