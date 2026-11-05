@@ -81,7 +81,7 @@ y la VPN, y cualquiera de dentro ve los repos a los que tiene acceso el token.
 
 ### Fuera de alcance
 - Varios usuarios.
-- Passkeys (WebAuthn): están en el backlog (E09). Login con GitHub o SSO: no.
+- Passkeys (WebAuthn): están en el backlog (E09.6). Login con GitHub o SSO: no.
 - Autenticación en el proxy (Authelia, cabeceras de Tailscale). Es una
   alternativa válida que no toca la app, pero se descarta para que la app se
   proteja sola, esté detrás del proxy que esté.
