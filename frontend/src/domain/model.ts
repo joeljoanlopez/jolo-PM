@@ -21,7 +21,11 @@ export interface BoardTask {
   prs: number[];
 }
 
+export type GroupBy = "file" | "section";
+
 export interface Card {
+  /** Ruta del fichero, o ruta#ancla si el proyecto agrupa por sección. Falta en tableros antiguos. */
+  key?: string;
   path: string;
   title: string;
   url: string;
@@ -55,6 +59,7 @@ export interface Project {
   paths: string[];
   name: string | null;
   label: string;
+  groupBy: GroupBy;
 }
 
 export interface ProjectListItem extends Project {
@@ -83,4 +88,5 @@ export interface ProjectInput {
   branch: string | null;
   paths: string[];
   name: string | null;
+  groupBy: GroupBy;
 }

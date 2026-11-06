@@ -1,5 +1,5 @@
 import { CheckSquare2, Clock, ExternalLink, GitPullRequest, Square } from "lucide-react";
-import { groupBySection, plainTaskText } from "../../domain/board";
+import { fileUrl, groupBySection, plainTaskText } from "../../domain/board";
 import type { BoardTask, Card } from "../../domain/model";
 import { ProgressBar } from "../components/ProgressBar";
 import { Modal } from "../components/ui";
@@ -45,7 +45,7 @@ export function CardDetail({ card, onClose }: { card: Card; onClose: () => void 
             {group.section && <h3 className="mb-1.5 text-xs font-semibold tracking-wide text-zinc-500 uppercase">{group.section}</h3>}
             <ul className="space-y-1">
               {group.tasks.map((task) => (
-                <TaskRow key={task.line} task={task} url={`${card.url}#L${task.line}`} prs={task.prs.map((n) => prsByNumber.get(n)).filter((p) => p !== undefined)} />
+                <TaskRow key={task.line} task={task} url={`${fileUrl(card)}#L${task.line}`} prs={task.prs.map((n) => prsByNumber.get(n)).filter((p) => p !== undefined)} />
               ))}
             </ul>
           </section>

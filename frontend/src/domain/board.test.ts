@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { age, groupBySection, groupByStatus, plainTaskText, progress } from "./board";
+import { age, cardKey, fileUrl, groupBySection, groupByStatus, plainTaskText, progress } from "./board";
 import type { BoardTask, Card } from "./model";
 
 const task = (section: string | null, text = "t"): BoardTask => ({ text, depth: 0, line: 1, section, state: "pending", prs: [] });
@@ -28,6 +28,16 @@ describe("board", () => {
     expect(age("2026-11-04T11:59:50Z", now)).toEqual({ unit: "now" });
     expect(age("2026-11-04T11:57:00Z", now)).toEqual({ unit: "minutes", value: 3 });
     expect(age("2026-11-04T09:00:00Z", now)).toEqual({ unit: "hours", value: 3 });
+  });
+
+  it("identifica la tarjeta por su clave, o por la ruta en tableros antiguos", () => {
+    expect(cardKey({ key: "PLAN.md#uno", path: "PLAN.md" } as Card)).toBe("PLAN.md#uno");
+    expect(cardKey({ path: "PLAN.md" } as Card)).toBe("PLAN.md");
+  });
+
+  it("quita el ancla de sección para enlazar líneas del fichero", () => {
+    expect(fileUrl({ url: "https://github.com/o/r/blob/main/PLAN.md#uno" } as Card)).toBe("https://github.com/o/r/blob/main/PLAN.md");
+    expect(fileUrl({ url: "https://github.com/o/r/blob/main/PLAN.md" } as Card)).toBe("https://github.com/o/r/blob/main/PLAN.md");
   });
 
   it("limpia enlaces y negritas del texto", () => {

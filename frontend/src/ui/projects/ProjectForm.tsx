@@ -1,6 +1,6 @@
 import { Lock, Search } from "lucide-react";
 import { useMemo, useState, type FormEvent } from "react";
-import type { Project, ProjectBoard } from "../../domain/model";
+import type { GroupBy, Project, ProjectBoard } from "../../domain/model";
 import { GatewayError } from "../../ports/ProjectsGateway";
 import { Button, ErrorBanner, Spinner } from "../components/ui";
 import { useGateway } from "../gateway";
@@ -27,6 +27,7 @@ export function ProjectForm({
   const [branch, setBranch] = useState(project?.branch ?? "");
   const [paths, setPaths] = useState(project?.paths.join("\n") ?? DEFAULT_PATHS);
   const [name, setName] = useState(project?.name ?? "");
+  const [groupBy, setGroupBy] = useState<GroupBy>(project?.groupBy ?? "file");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<GatewayError | Error | null>(null);
 
@@ -41,6 +42,7 @@ export function ProjectForm({
       branch: branch.trim() || null,
       paths: paths.split("\n").map((p) => p.trim()).filter(Boolean),
       name: name.trim() || null,
+      groupBy,
     };
     try {
       onSaved(editing ? await gateway.updateProject(project.id, input) : await gateway.createProject(input));
@@ -80,6 +82,14 @@ export function ProjectForm({
           <input value={name} onChange={(e) => setName(e.target.value)} className={inputClass} maxLength={100} />
         </Field>
       </div>
+
+      <Field label={t.form.groupBy} hint={t.form.groupByHint} error={fields.groupBy}>
+        <select value={groupBy} onChange={(e) => setGroupBy(e.target.value as GroupBy)} className={inputClass}>
+          {(["file", "section"] as const).map((option) => (
+            <option key={option} value={option}>{t.form.groupByOptions[option]}</option>
+          ))}
+        </select>
+      </Field>
 
       {error && Object.keys(fields).length === 0 && <ErrorBanner>{error.message}</ErrorBanner>}
 
