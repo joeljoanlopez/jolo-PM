@@ -32,6 +32,7 @@ código se ignoran. Las tareas se agrupan por el encabezado bajo el que están.
 
 ```sh
 cp .env.example .env      # y rellena GITHUB_TOKEN
+mkdir -p data             # con tu usuario: si la crea Docker, es de root
 docker compose up -d --build
 ```
 
