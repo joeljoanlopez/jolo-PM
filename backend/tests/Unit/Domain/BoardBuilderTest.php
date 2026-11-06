@@ -102,7 +102,7 @@ final class BoardBuilderTest extends TestCase
         }
         $board = $this->build(['PLAN.md' => $plan], [], GroupBy::Section);
 
-        $this->assertSame(['Uno', 'Dos', 'Tres', 'Cuatro', 'Cinco'], array_map(fn ($c) => $c->title, $board->cards));
+        $this->assertSame(['Plan/Uno', 'Plan/Dos', 'Plan/Tres', 'Plan/Cuatro', 'Plan/Cinco'], array_map(fn ($c) => $c->title, $board->cards));
         $this->assertSame(['PLAN.md#uno', 'PLAN.md#dos', 'PLAN.md#tres', 'PLAN.md#cuatro', 'PLAN.md#cinco'], array_map(fn ($c) => $c->key, $board->cards));
         $this->assertSame(['PLAN.md'], array_values(array_unique(array_map(fn ($c) => $c->path, $board->cards))));
         $this->assertSame([2, 1], [$board->cards[0]->total, $board->cards[0]->done]);
@@ -124,7 +124,7 @@ final class BoardBuilderTest extends TestCase
         ], [], GroupBy::Section);
 
         $this->assertSame(
-            ['docs/plan.md' => 'Mi plan', 'docs/plan.md#sección' => 'Sección', 'notas.md' => 'notas', 'notas.md#s' => 'S'],
+            ['docs/plan.md' => 'Mi plan', 'docs/plan.md#sección' => 'Mi plan/Sección', 'notas.md' => 'notas', 'notas.md#s' => 'notas/S'],
             array_column(array_map(fn ($c) => ['k' => $c->key, 't' => $c->title], $board->cards), 't', 'k'),
         );
         $this->assertSame(['suelta', 'sin sección de nivel 2'], array_column($board->cards[0]->tasks, 'text'));
@@ -135,7 +135,7 @@ final class BoardBuilderTest extends TestCase
     {
         $board = $this->build(['plan.md' => "## Backend\n- [x] a\n### API\n- [ ] b\n## Frontend\n- [ ] c"], [], GroupBy::Section);
 
-        $this->assertSame(['Backend', 'Frontend'], array_map(fn ($c) => $c->title, $board->cards));
+        $this->assertSame(['plan/Backend', 'plan/Frontend'], array_map(fn ($c) => $c->title, $board->cards));
         $this->assertSame(['Backend', 'API'], array_column($board->cards[0]->tasks, 'section'));
     }
 

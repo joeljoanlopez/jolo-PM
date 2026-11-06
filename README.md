@@ -66,7 +66,8 @@ Desde la web: **Añadir proyecto** → elige el repo, los globs de los ficheros 
 leer (uno por línea) y, si quieres, una rama distinta de la principal.
 
 **Una tarjeta por** fichero (por defecto) o por sección: con *Sección* cada
-encabezado `##` con casillas es una tarjeta que enlaza a su ancla en GitHub, y
+encabezado `##` con casillas es una tarjeta (`Plan/Sección`) que enlaza a su
+ancla en GitHub, y
 las casillas anteriores al primer `##` van a una tarjeta con el título del
 fichero. Útil para planes que lo meten todo en un único `PLAN.md`. Renombrar una
 sección cuenta como tarjeta nueva.

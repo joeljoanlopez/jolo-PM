@@ -53,8 +53,9 @@ final class BoardBuilder
 
     /**
      * Reparte las tareas del documento en tarjetas. Por sección, cada `##` con
-     * casillas es una tarjeta (clave fichero#ancla) y las casillas anteriores al
-     * primer `##` van a una con el título del fichero (clave = ruta).
+     * casillas es una tarjeta titulada `título del fichero/sección` (clave
+     * fichero#ancla) y las casillas anteriores al primer `##` van a una con el
+     * título del fichero (clave = ruta).
      *
      * @return list<array{key: string, anchor: ?string, document: ParsedDocument}>
      */
@@ -70,7 +71,7 @@ final class BoardBuilder
         $groups = [];
         foreach ($document->tasks as $task) {
             $anchor = $task->chapterAnchor;
-            $groups[$anchor ?? ''] ??= ['anchor' => $anchor, 'title' => $task->chapter ?? $document->title, 'tasks' => []];
+            $groups[$anchor ?? ''] ??= ['anchor' => $anchor, 'title' => $task->chapter !== null ? $document->title . '/' . $task->chapter : $document->title, 'tasks' => []];
             $groups[$anchor ?? '']['tasks'][] = $task;
         }
 
