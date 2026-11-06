@@ -16,3 +16,7 @@ frontend/*.tsbuildinfo
 *.swp
 *.swo
 *~
+
+# Configuración local del IDE y de las herramientas de agentes.
+.idea/
+.atl/
