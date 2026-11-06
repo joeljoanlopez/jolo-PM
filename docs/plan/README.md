@@ -37,7 +37,7 @@ Este plan se sigue a sí mismo: jolo-PM está dado de alta en jolo-PM con la rut
 | E08 | [Despliegue y CI](E08-despliegue-ci.md) | Infra |
 | E09 | [Mejoras futuras](E09-mejoras-futuras.md) | Backlog |
 | E09.1 | ↳ [Webhook de GitHub](E09.1-webhook-github.md) | Backlog |
-| E09.2 | ↳ [Tarjeta por sección](E09.2-tarjeta-por-seccion.md) | Backlog |
+| E09.2 | ↳ [Tarjeta por sección](E09.2-tarjeta-por-seccion.md) | Dominio |
 | E09.3 | ↳ [Historial de progreso](E09.3-historial-progreso.md) | Backlog |
 | E09.4 | ↳ [Trabajo fuera de la rama principal](E09.4-trabajo-fuera-de-main.md) | Backlog |
 | E09.5 | ↳ [Varios tokens de GitHub](E09.5-varios-tokens.md) | Backlog |

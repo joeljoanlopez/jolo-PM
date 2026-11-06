@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Domain;
 
 use App\Domain\Exception\ValidationFailed;
+use App\Domain\Model\GroupBy;
 use App\Domain\Model\Project;
 use PHPUnit\Framework\TestCase;
 
@@ -28,6 +29,25 @@ final class ProjectTest extends TestCase
             $this->fail('Debería fallar');
         } catch (ValidationFailed $e) {
             $this->assertSame(['repository', 'branch', 'paths'], array_keys($e->errors));
+        }
+    }
+
+    public function test_groups_by_file_unless_told_otherwise(): void
+    {
+        $this->assertSame(GroupBy::File, Project::fromInput(null, 'o/r', null, ['*.md'], null)->groupBy);
+        $this->assertSame(GroupBy::File, Project::fromInput(null, 'o/r', null, ['*.md'], null, ' ')->groupBy);
+        $project = Project::fromInput(null, 'o/r', null, ['*.md'], null, 'section');
+        $this->assertSame(GroupBy::Section, $project->groupBy);
+        $this->assertSame('section', $project->jsonSerialize()['groupBy']);
+    }
+
+    public function test_rejects_unknown_grouping(): void
+    {
+        try {
+            Project::fromInput(null, 'o/r', null, ['*.md'], null, 'carpeta');
+            $this->fail('Debería fallar');
+        } catch (ValidationFailed $e) {
+            $this->assertSame(['groupBy'], array_keys($e->errors));
         }
     }
 }

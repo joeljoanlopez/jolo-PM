@@ -48,3 +48,13 @@ export function plainTaskText(text: string): string {
     .replace(/\*\*|__|~~/g, "")
     .trim();
 }
+
+/** Clave estable de la tarjeta. Los tableros guardados antes de E09.2 no la traen: entonces es la ruta. */
+export function cardKey(card: Card): string {
+  return card.key ?? card.path;
+}
+
+/** Enlace al fichero sin el ancla de sección, para añadir el de una línea (#L12). */
+export function fileUrl(card: Card): string {
+  return card.url.replace(/#.*$/, "");
+}

@@ -13,7 +13,8 @@ docs/plan/E03-github.md                       Por hacer   En curso   En revisió
 
 ## Cómo decide la columna
 
-Cada fichero seguido es una tarjeta. Su columna sale de sus casillas:
+Cada fichero seguido es una tarjeta (o cada sección `##`, si el proyecto agrupa
+por sección). Su columna sale de sus casillas:
 
 | Columna | Cuándo |
 | --- | --- |
@@ -64,6 +65,13 @@ seguir (ver la nota de arriba sobre el login). Opciones:
 
 Desde la web: **Añadir proyecto** → elige el repo, los globs de los ficheros a
 leer (uno por línea) y, si quieres, una rama distinta de la principal.
+
+**Una tarjeta por** fichero (por defecto) o por sección: con *Sección* cada
+encabezado `##` con casillas es una tarjeta (`Plan/Sección`) que enlaza a su
+ancla en GitHub, y
+las casillas anteriores al primer `##` van a una tarjeta con el título del
+fichero. Útil para planes que lo meten todo en un único `PLAN.md`. Renombrar una
+sección cuenta como tarjeta nueva.
 
 | Glob | Casa con |
 | --- | --- |

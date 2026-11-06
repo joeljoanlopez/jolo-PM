@@ -55,6 +55,7 @@ final class EloquentProjectRepository implements ProjectRepository
             'branch' => $project->branch,
             'paths' => $project->paths,
             'display_name' => $project->displayName,
+            'group_by' => $project->groupBy->value,
         ])->save();
 
         return $record->toDomain();

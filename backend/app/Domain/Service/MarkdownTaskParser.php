@@ -23,6 +23,8 @@ final class MarkdownTaskParser
 
         $title = null;
         $section = null;
+        $chapter = $chapterAnchor = null;
+        $anchors = new GitHubAnchors();
         $fence = null;
         // Sangrías abiertas de la lista actual, de menor a mayor: la profundidad
         // de una tarea es cuántas hay por debajo de la suya.
@@ -46,6 +48,10 @@ final class MarkdownTaskParser
 
             if (preg_match(self::HEADING, $line, $m)) {
                 $text = self::plainText($m['text']);
+                $anchor = $anchors->next($text);
+                if ($m['level'] === '##') {
+                    [$chapter, $chapterAnchor] = [$text, $anchor];
+                }
                 if ($m['level'] === '#' && $title === null) {
                     $title = $text;
                 } elseif ($m['level'] !== '#') {
@@ -77,6 +83,8 @@ final class MarkdownTaskParser
                 depth: $depth,
                 line: $index + 1,
                 section: $section,
+                chapter: $chapter,
+                chapterAnchor: $chapterAnchor,
             );
         }
 

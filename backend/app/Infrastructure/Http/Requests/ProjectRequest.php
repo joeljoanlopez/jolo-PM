@@ -8,8 +8,8 @@ use Illuminate\Foundation\Http\FormRequest;
 
 /**
  * Solo valida la forma de la petición (tipos y presencia). Las reglas de
- * negocio (formato del repo, rama válida, al menos un glob) son del dominio,
- * en App\Domain\Model\Project.
+ * negocio (formato del repo, rama válida, al menos un glob, agrupado conocido)
+ * son del dominio, en App\Domain\Model\Project.
  */
 class ProjectRequest extends FormRequest
 {
@@ -24,6 +24,7 @@ class ProjectRequest extends FormRequest
             // nullable: Laravel convierte "   " en null; el dominio descarta las vacías.
             'paths.*' => ['nullable', 'string', 'max:500'],
             'name' => ['nullable', 'string', 'max:100'],
+            'groupBy' => ['nullable', 'string', 'max:20'],
         ];
     }
 

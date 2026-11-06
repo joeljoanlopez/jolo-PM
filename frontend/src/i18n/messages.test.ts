@@ -8,6 +8,11 @@ describe("i18n", () => {
     expect(detectLanguage("klingon", ["de"])).toBe("es");
   });
 
+  it("nombra cada forma de agrupar en los dos idiomas", () => {
+    expect(Object.keys(messages.es.form.groupByOptions)).toEqual(["file", "section"]);
+    expect(Object.keys(messages.en.form.groupByOptions)).toEqual(["file", "section"]);
+  });
+
   it("formatea tiempos relativos en cada idioma", () => {
     expect(messages.es.age(null)).toBe("nunca");
     expect(messages.es.age({ unit: "minutes", value: 3 })).toBe("hace 3 min");

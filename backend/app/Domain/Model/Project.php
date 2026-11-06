@@ -9,11 +9,14 @@ use App\Domain\Exception\ValidationFailed;
 /**
  * Un repo seguido por el tablero: qué ficheros mirar y en qué rama.
  * `branch` nulo significa "la rama principal del repo", que se consulta en cada
- * sincronización por si cambia.
+ * sincronización por si cambia. `groupBy` dice si cada fichero es una tarjeta
+ * o lo es cada una de sus secciones `##`.
  */
 final class Project implements \JsonSerializable
 {
     private const SLUG = '/^[A-Za-z0-9_.-]{1,100}$/';
+
+    public readonly GroupBy $groupBy;
 
     /** @param list<string> $paths */
     public function __construct(
@@ -23,8 +26,13 @@ final class Project implements \JsonSerializable
         public readonly ?string $branch,
         public readonly array $paths,
         public readonly ?string $displayName,
+        GroupBy|string $groupBy = GroupBy::File,
     ) {
         $errors = [];
+        $this->groupBy = is_string($groupBy) ? (GroupBy::tryFrom($groupBy) ?? GroupBy::File) : $groupBy;
+        if (is_string($groupBy) && GroupBy::tryFrom($groupBy) === null) {
+            $errors['groupBy'] = new Message('validation.group_by_invalid');
+        }
         if (!preg_match(self::SLUG, $owner) || !preg_match(self::SLUG, $name)) {
             $errors['repository'] = new Message('validation.repository_format');
         }
@@ -54,6 +62,7 @@ final class Project implements \JsonSerializable
         ?string $branch,
         array|string $paths,
         ?string $displayName,
+        ?string $groupBy = null,
     ): self {
         $repository = trim($repository);
         $repository = (string) preg_replace('#^(https?://github\.com/|git@github\.com:)#', '', $repository);
@@ -70,6 +79,7 @@ final class Project implements \JsonSerializable
 
         $branch = $branch !== null ? trim($branch) : null;
         $displayName = $displayName !== null ? trim($displayName) : null;
+        $groupBy = $groupBy !== null ? trim($groupBy) : null;
 
         return new self(
             $id,
@@ -78,12 +88,13 @@ final class Project implements \JsonSerializable
             $branch === '' ? null : $branch,
             $paths,
             $displayName === '' ? null : $displayName,
+            $groupBy === null || $groupBy === '' ? GroupBy::File : $groupBy,
         );
     }
 
     public function withId(int $id): self
     {
-        return new self($id, $this->owner, $this->name, $this->branch, $this->paths, $this->displayName);
+        return new self($id, $this->owner, $this->name, $this->branch, $this->paths, $this->displayName, $this->groupBy);
     }
 
     public function fullName(): string
@@ -106,6 +117,7 @@ final class Project implements \JsonSerializable
             'paths' => $this->paths,
             'name' => $this->displayName,
             'label' => $this->label(),
+            'groupBy' => $this->groupBy->value,
         ];
     }
 }

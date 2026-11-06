@@ -30,6 +30,7 @@ return [
         'branch_invalid' => 'Nombre de rama no válido.',
         'paths_required' => 'Indica al menos una ruta o glob, por ejemplo docs/**/*.md.',
         'name_too_long' => 'El nombre no puede pasar de 100 caracteres.',
+        'group_by_invalid' => 'Agrupa por "file" (fichero) o por "section" (sección).',
     ],
 
     'request' => [
@@ -46,5 +47,6 @@ return [
         'branch' => 'rama',
         'paths' => 'rutas',
         'name' => 'nombre',
+        'groupBy' => 'agrupar por',
     ],
 ];

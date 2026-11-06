@@ -19,9 +19,9 @@ final class AddProject
     }
 
     /** @param list<string>|string $paths */
-    public function execute(string $repository, ?string $branch, array|string $paths, ?string $name): Project
+    public function execute(string $repository, ?string $branch, array|string $paths, ?string $name, ?string $groupBy = null): Project
     {
-        $project = Project::fromInput(null, $repository, $branch, $paths, $name);
+        $project = Project::fromInput(null, $repository, $branch, $paths, $name, $groupBy);
 
         // Antes de guardar: así un repo sin acceso da error en el formulario en
         // vez de quedar dado de alta y fallando en cada sincronización.

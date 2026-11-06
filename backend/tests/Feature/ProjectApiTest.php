@@ -95,6 +95,45 @@ final class ProjectApiTest extends TestCase
         $this->getJson("/api/projects/$id/board")->assertNotFound()->assertJsonPath('error.code', 'not_found');
     }
 
+    public function test_projects_group_by_file_by_default(): void
+    {
+        $this->postJson('/api/projects', ['repository' => 'o/r', 'paths' => ['docs/plan/*.md']])
+            ->assertCreated()
+            ->assertJsonPath('project.groupBy', 'file')
+            ->assertJsonPath('board.cards.0.key', 'docs/plan/E01.md')
+            ->assertJsonCount(2, 'board.cards');
+    }
+
+    public function test_group_by_section_is_saved_and_editable(): void
+    {
+        $this->github->files['docs/plan/PLAN.md'] = "# Plan\n- [ ] suelta\n## A\n- [x] a\n## B\n- [ ] b";
+
+        $id = $this->postJson('/api/projects', ['repository' => 'o/r', 'paths' => ['docs/plan/PLAN.md'], 'groupBy' => 'section'])
+            ->assertCreated()
+            ->assertJsonPath('project.groupBy', 'section')
+            ->assertJsonPath('board.cards.*.key', ['docs/plan/PLAN.md', 'docs/plan/PLAN.md#a', 'docs/plan/PLAN.md#b'])
+            ->json('project.id');
+
+        // Sin groupBy en la edición se conserva el que había.
+        $this->patchJson("/api/projects/$id", ['paths' => ['docs/plan/PLAN.md']])
+            ->assertOk()
+            ->assertJsonPath('project.groupBy', 'section');
+
+        $this->patchJson("/api/projects/$id", ['paths' => ['docs/plan/PLAN.md'], 'groupBy' => 'file'])
+            ->assertOk()
+            ->assertJsonPath('project.groupBy', 'file')
+            ->assertJsonCount(1, 'board.cards');
+
+        $this->getJson('/api/projects')->assertJsonPath('0.groupBy', 'file');
+    }
+
+    public function test_unknown_group_by_is_rejected(): void
+    {
+        $this->postJson('/api/projects', ['repository' => 'o/r', 'paths' => ['*.md'], 'groupBy' => 'carpeta'])
+            ->assertStatus(422)
+            ->assertJsonPath('error.fields.groupBy', fn ($m) => is_string($m) && $m !== '');
+    }
+
     public function test_errors_have_a_stable_shape(): void
     {
         $this->postJson('/api/projects', ['repository' => 'otro/repo', 'paths' => ['*.md']])
