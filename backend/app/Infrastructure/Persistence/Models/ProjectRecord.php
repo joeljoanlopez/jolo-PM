@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Persistence\Models;
 
+use App\Domain\Model\GroupBy;
 use App\Domain\Model\Project;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -16,7 +17,7 @@ class ProjectRecord extends Model
 {
     protected $table = 'projects';
 
-    protected $fillable = ['owner', 'name', 'branch', 'paths', 'display_name'];
+    protected $fillable = ['owner', 'name', 'branch', 'paths', 'display_name', 'group_by'];
 
     protected $casts = ['paths' => 'array'];
 
@@ -34,6 +35,7 @@ class ProjectRecord extends Model
             $this->branch,
             array_values($this->paths ?? []),
             $this->display_name,
+            GroupBy::tryFrom((string) $this->group_by) ?? GroupBy::File,
         );
     }
 }

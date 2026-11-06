@@ -33,6 +33,7 @@ final class ProjectController
             $request->input('branch'),
             $request->input('paths'),
             $request->input('name'),
+            $request->input('groupBy'),
         );
 
         return response()->json(Translator::translateErrorIn($overview->board((int) $project->id)), 201);
@@ -40,7 +41,13 @@ final class ProjectController
 
     public function update(int $id, ProjectRequest $request, UpdateProject $update, ProjectOverview $overview): JsonResponse
     {
-        $update->execute($id, $request->input('branch'), $request->input('paths'), $request->input('name'));
+        $update->execute(
+            $id,
+            $request->input('branch'),
+            $request->input('paths'),
+            $request->input('name'),
+            $request->input('groupBy'),
+        );
 
         return response()->json(Translator::translateErrorIn($overview->board($id)));
     }

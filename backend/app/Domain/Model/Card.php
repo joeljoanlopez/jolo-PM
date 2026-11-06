@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace App\Domain\Model;
 
-/** Un fichero seguido, convertido en tarjeta del tablero. */
+/**
+ * Una tarjeta del tablero: un fichero seguido o, agrupando por sección, un `##`
+ * de ese fichero. `key` la identifica de forma estable (ruta, o ruta#ancla).
+ */
 final class Card implements \JsonSerializable
 {
     /**
@@ -12,6 +15,7 @@ final class Card implements \JsonSerializable
      * @param list<PullRequest> $pullRequests PRs abiertas que marcan alguna tarea de la tarjeta
      */
     public function __construct(
+        public readonly string $key,
         public readonly string $path,
         public readonly string $title,
         public readonly string $url,
@@ -28,6 +32,7 @@ final class Card implements \JsonSerializable
     public function jsonSerialize(): array
     {
         return [
+            'key' => $this->key,
             'path' => $this->path,
             'title' => $this->title,
             'url' => $this->url,

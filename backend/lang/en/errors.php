@@ -28,6 +28,7 @@ return [
         'branch_invalid' => 'Invalid branch name.',
         'paths_required' => 'Enter at least one path or glob, e.g. docs/**/*.md.',
         'name_too_long' => 'The name cannot be longer than 100 characters.',
+        'group_by_invalid' => 'Group by "file" or by "section".',
     ],
 
     'request' => [
@@ -44,5 +45,6 @@ return [
         'branch' => 'branch',
         'paths' => 'paths',
         'name' => 'name',
+        'groupBy' => 'group by',
     ],
 ];
