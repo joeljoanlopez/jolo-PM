@@ -115,5 +115,5 @@ y la VPN, y cualquiera de dentro ve los repos a los que tiene acceso el token.
 - [ ] Comando `auth:reset` para recuperar el acceso
 - [ ] Frontend: `AuthGateway`, asistente de configuración con QR, pantallas de login y código
 - [ ] Frontend: redirección a login ante 401 y botón de cerrar sesión
-- [ ] Tests de API del flujo completo, incluidos límite de intentos y CSRF
+- [ ] Tests de API del flujo completo, incluidos límite de intentos, CSRF y 401 sin sesión en los flujos de `tests/Integration/Http`
 - [ ] README: configuración inicial, `APP_KEY` y qué hacer si se pierde el acceso

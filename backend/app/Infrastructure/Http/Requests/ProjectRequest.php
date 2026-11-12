@@ -13,6 +13,7 @@ use Illuminate\Foundation\Http\FormRequest;
  */
 class ProjectRequest extends FormRequest
 {
+    /** @return array<string, list<string>> */
     public function rules(): array
     {
         $creating = $this->isMethod('POST');

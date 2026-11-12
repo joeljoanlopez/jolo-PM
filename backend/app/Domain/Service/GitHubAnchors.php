@@ -16,7 +16,8 @@ final class GitHubAnchors
 
     public function next(string $heading): string
     {
-        $base = str_replace(' ', '-', (string) preg_replace('/[^\p{L}\p{M}\p{N}\p{Pc} -]/u', '', mb_strtolower($heading)));
+        $kept = (string) preg_replace('/[^\p{L}\p{M}\p{N}\p{Pc} -]/u', '', mb_strtolower($heading));
+        $base = str_replace(' ', '-', $kept);
 
         $anchor = $base;
         while (isset($this->seen[$anchor])) {

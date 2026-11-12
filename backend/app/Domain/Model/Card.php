@@ -11,7 +11,9 @@ namespace App\Domain\Model;
 final class Card implements \JsonSerializable
 {
     /**
-     * @param list<array{text: string, depth: int, line: int, section: ?string, state: TaskState, prs: list<int>}> $tasks
+     * @param list<array{
+     *     text: string, depth: int, line: int, section: ?string, state: TaskState, prs: list<int>
+     * }> $tasks
      * @param list<PullRequest> $pullRequests PRs abiertas que marcan alguna tarea de la tarjeta
      */
     public function __construct(

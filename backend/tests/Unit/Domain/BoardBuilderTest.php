@@ -102,8 +102,14 @@ final class BoardBuilderTest extends TestCase
         }
         $board = $this->build(['PLAN.md' => $plan], [], GroupBy::Section);
 
-        $this->assertSame(['Plan/Uno', 'Plan/Dos', 'Plan/Tres', 'Plan/Cuatro', 'Plan/Cinco'], array_map(fn ($c) => $c->title, $board->cards));
-        $this->assertSame(['PLAN.md#uno', 'PLAN.md#dos', 'PLAN.md#tres', 'PLAN.md#cuatro', 'PLAN.md#cinco'], array_map(fn ($c) => $c->key, $board->cards));
+        $this->assertSame(
+            ['Plan/Uno', 'Plan/Dos', 'Plan/Tres', 'Plan/Cuatro', 'Plan/Cinco'],
+            array_map(fn ($c) => $c->title, $board->cards),
+        );
+        $this->assertSame(
+            ['PLAN.md#uno', 'PLAN.md#dos', 'PLAN.md#tres', 'PLAN.md#cuatro', 'PLAN.md#cinco'],
+            array_map(fn ($c) => $c->key, $board->cards),
+        );
         $this->assertSame(['PLAN.md'], array_values(array_unique(array_map(fn ($c) => $c->path, $board->cards))));
         $this->assertSame([2, 1], [$board->cards[0]->total, $board->cards[0]->done]);
         $this->assertSame('in_progress', $board->cards[0]->status->value);
@@ -111,7 +117,8 @@ final class BoardBuilderTest extends TestCase
 
     public function test_section_status_follows_its_own_checkboxes(): void
     {
-        $board = $this->build(['plan.md' => "## Hecha\n- [x] a\n## Por hacer\n- [ ] b\n## A medias\n- [x] c\n- [ ] d"], [], GroupBy::Section);
+        $plan = "## Hecha\n- [x] a\n## Por hacer\n- [ ] b\n## A medias\n- [x] c\n- [ ] d";
+        $board = $this->build(['plan.md' => $plan], [], GroupBy::Section);
 
         $this->assertSame(['done', 'todo', 'in_progress'], array_map(fn ($c) => $c->status->value, $board->cards));
     }
@@ -119,12 +126,18 @@ final class BoardBuilderTest extends TestCase
     public function test_checkboxes_before_first_section_go_to_a_card_titled_like_the_file(): void
     {
         $board = $this->build([
-            'docs/plan.md' => "# Mi plan\n- [ ] suelta\n### Detalle\n- [x] sin sección de nivel 2\n## Sección\n- [ ] a",
+            'docs/plan.md' => "# Mi plan\n- [ ] suelta\n### Detalle\n- [x] sin sección de nivel 2\n"
+                . "## Sección\n- [ ] a",
             'notas.md' => "- [ ] sin título\n## S\n- [ ] b",
         ], [], GroupBy::Section);
 
         $this->assertSame(
-            ['docs/plan.md' => 'Mi plan', 'docs/plan.md#sección' => 'Mi plan/Sección', 'notas.md' => 'notas', 'notas.md#s' => 'notas/S'],
+            [
+                'docs/plan.md' => 'Mi plan',
+                'docs/plan.md#sección' => 'Mi plan/Sección',
+                'notas.md' => 'notas',
+                'notas.md#s' => 'notas/S',
+            ],
             array_column(array_map(fn ($c) => ['k' => $c->key, 't' => $c->title], $board->cards), 't', 'k'),
         );
         $this->assertSame(['suelta', 'sin sección de nivel 2'], array_column($board->cards[0]->tasks, 'text'));
@@ -133,7 +146,8 @@ final class BoardBuilderTest extends TestCase
 
     public function test_subsections_stay_in_their_level_two_card(): void
     {
-        $board = $this->build(['plan.md' => "## Backend\n- [x] a\n### API\n- [ ] b\n## Frontend\n- [ ] c"], [], GroupBy::Section);
+        $plan = "## Backend\n- [x] a\n### API\n- [ ] b\n## Frontend\n- [ ] c";
+        $board = $this->build(['plan.md' => $plan], [], GroupBy::Section);
 
         $this->assertSame(['plan/Backend', 'plan/Frontend'], array_map(fn ($c) => $c->title, $board->cards));
         $this->assertSame(['Backend', 'API'], array_column($board->cards[0]->tasks, 'section'));
@@ -148,9 +162,13 @@ final class BoardBuilderTest extends TestCase
 
     public function test_section_card_url_has_github_anchor(): void
     {
-        $board = $this->build(['docs/E09 x.md' => "# E09.2 — Tarjeta\n## Criterios de aceptación\n- [ ] a"], [], GroupBy::Section);
+        $plan = "# E09.2 — Tarjeta\n## Criterios de aceptación\n- [ ] a";
+        $board = $this->build(['docs/E09 x.md' => $plan], [], GroupBy::Section);
 
-        $this->assertSame('https://github.com/o/r/blob/main/docs/E09%20x.md#criterios-de-aceptación', $board->cards[0]->url);
+        $this->assertSame(
+            'https://github.com/o/r/blob/main/docs/E09%20x.md#criterios-de-aceptación',
+            $board->cards[0]->url,
+        );
     }
 
     public function test_repeated_section_names_get_distinct_keys(): void
@@ -192,6 +210,7 @@ final class BoardBuilderTest extends TestCase
             }
         }
 
-        return (new BoardBuilder())->build('https://github.com/o/r', 'main', $documents, $versions, new \DateTimeImmutable(), $groupBy);
+        return (new BoardBuilder())
+            ->build('https://github.com/o/r', 'main', $documents, $versions, new \DateTimeImmutable(), $groupBy);
     }
 }

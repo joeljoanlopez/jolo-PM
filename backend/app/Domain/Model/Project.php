@@ -94,7 +94,15 @@ final class Project implements \JsonSerializable
 
     public function withId(int $id): self
     {
-        return new self($id, $this->owner, $this->name, $this->branch, $this->paths, $this->displayName, $this->groupBy);
+        return new self(
+            $id,
+            $this->owner,
+            $this->name,
+            $this->branch,
+            $this->paths,
+            $this->displayName,
+            $this->groupBy,
+        );
     }
 
     public function fullName(): string

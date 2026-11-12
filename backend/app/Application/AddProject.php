@@ -19,8 +19,13 @@ final class AddProject
     }
 
     /** @param list<string>|string $paths */
-    public function execute(string $repository, ?string $branch, array|string $paths, ?string $name, ?string $groupBy = null): Project
-    {
+    public function execute(
+        string $repository,
+        ?string $branch,
+        array|string $paths,
+        ?string $name,
+        ?string $groupBy = null,
+    ): Project {
         $project = Project::fromInput(null, $repository, $branch, $paths, $name, $groupBy);
 
         // Antes de guardar: así un repo sin acceso da error en el formulario en

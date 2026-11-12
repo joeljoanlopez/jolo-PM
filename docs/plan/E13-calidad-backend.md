@@ -8,11 +8,14 @@ estilo y sin medir la cobertura.
 ## Alcance
 - **PHPStan** con Larastan, configurado en `backend/phpstan.neon` y analizando
   `app/`. Se empieza en el nivel más alto que pase sin baseline o con una
-  baseline pequeña, y la baseline solo puede encoger.
+  baseline pequeña, y la baseline solo puede encoger. **Queda en nivel 8 sin
+  baseline**: el 9 da unos 44 errores, casi todos `mixed` del JSON de GitHub y
+  del contenedor.
 - **PHPCS** con el estándar PSR-12, configurado en `backend/phpcs.xml` y
-  aplicado a `app/`, `tests/`, `database/` y `routes/`. Hay que decidir si
-  convive con Pint (que ya está en `require-dev`) o lo sustituye, para que no
-  haya dos fuentes de estilo que se contradigan.
+  aplicado a `app/`, `tests/`, `database/` y `routes/`. **Sustituye a Pint**,
+  que estaba en `require-dev` sin usarse, para que no haya dos fuentes de
+  estilo que se contradigan. Los avisos (líneas de más de 120 caracteres)
+  también hacen fallar el CI.
 - **Cobertura** con PCOV en CI. El umbral es moderado, **70 % de líneas**, y
   el job falla si se baja de ahí. El informe queda como artefacto del job.
 - **Tests de integración** de los adaptadores contra infraestructura real o
@@ -26,8 +29,9 @@ estilo y sin medir la cobertura.
   - Alta de proyecto → sincronización → el tablero devuelve las tarjetas en
     sus columnas.
   - Una casilla marcada en una PR abierta mueve la tarjeta a «En revisión».
-  - Editar y borrar un proyecto, y respuestas a peticiones sin sesión o con
-    datos no válidos.
+  - Editar y borrar un proyecto, y respuestas a peticiones con datos no
+    válidos. Las peticiones **sin sesión** se prueban con el login de E10:
+    hoy la API no tiene sesión.
 - Una suite nueva de PHPUnit, `Integration`, separada de `Unit` y `Feature`
   para poder ejecutarla aparte.
 - En el CI, cada herramienta va en su propio paso para que se vea qué ha
@@ -53,14 +57,14 @@ estilo y sin medir la cobertura.
   ejecuta.
 
 ## Subtareas
-- [ ] PHPStan + Larastan: config, nivel inicial, baseline y script `composer analyse`
-- [ ] PHPCS con PSR-12: config, arreglos de estilo y script `composer lint`
-- [ ] Decidir qué hacer con Pint (convivir o quitarlo)
-- [ ] Cobertura con PCOV en CI, umbral del 70 % de líneas e informe como artefacto
-- [ ] Suite `Integration` en `phpunit.xml`
-- [ ] Tests de integración de los repositorios Eloquent contra SQLite en fichero
-- [ ] Tests de integración de los comandos de consola y el scheduler
-- [ ] Tests de aceptación por HTTP de los flujos principales del tablero
-- [ ] Pasos separados en `ci.yml` para análisis, estilo, tests y cobertura
-- [ ] Hook `.githooks/pre-commit` con PHPCS y PHPStan sobre los PHP del commit
-- [ ] Sección en `backend/README.md` con los comandos de calidad y cómo activar el hook
+- [x] PHPStan + Larastan: config, nivel inicial, baseline y script `composer analyse`
+- [x] PHPCS con PSR-12: config, arreglos de estilo y script `composer lint`
+- [x] Decidir qué hacer con Pint: se quita
+- [x] Cobertura con PCOV en CI, umbral del 70 % de líneas e informe como artefacto
+- [x] Suite `Integration` en `phpunit.xml`
+- [x] Tests de integración de los repositorios Eloquent contra SQLite en fichero
+- [x] Tests de integración de los comandos de consola y el scheduler
+- [x] Tests de aceptación por HTTP de los flujos principales del tablero
+- [x] Pasos separados en `ci.yml` para análisis, estilo, tests y cobertura
+- [x] Hook `.githooks/pre-commit` con PHPCS y PHPStan sobre los PHP del commit
+- [x] Sección en `backend/README.md` con los comandos de calidad y cómo activar el hook

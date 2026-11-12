@@ -21,8 +21,13 @@ final class UpdateProject
     }
 
     /** @param list<string>|string $paths */
-    public function execute(int $id, ?string $branch, array|string $paths, ?string $name, ?string $groupBy = null): Project
-    {
+    public function execute(
+        int $id,
+        ?string $branch,
+        array|string $paths,
+        ?string $name,
+        ?string $groupBy = null,
+    ): Project {
         $current = $this->projects->get($id);
         $project = $this->projects->save(
             Project::fromInput($id, $current->fullName(), $branch, $paths, $name, $groupBy ?? $current->groupBy->value),

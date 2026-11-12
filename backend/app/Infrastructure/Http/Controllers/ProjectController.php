@@ -39,8 +39,12 @@ final class ProjectController
         return response()->json(Translator::translateErrorIn($overview->board((int) $project->id)), 201);
     }
 
-    public function update(int $id, ProjectRequest $request, UpdateProject $update, ProjectOverview $overview): JsonResponse
-    {
+    public function update(
+        int $id,
+        ProjectRequest $request,
+        UpdateProject $update,
+        ProjectOverview $overview,
+    ): JsonResponse {
         $update->execute(
             $id,
             $request->input('branch'),

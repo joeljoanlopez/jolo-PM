@@ -16,10 +16,29 @@ jobs:
       - uses: shivammathur/setup-php@v2
         with:
           php-version: "8.4"
-          extensions: curl, mbstring, pdo_sqlite
-          coverage: none
+          extensions: curl, mbstring, pdo_sqlite, simplexml
+          coverage: pcov
       - run: composer install --no-interaction --prefer-dist --no-progress
-      - run: vendor/bin/phpunit
+      # Cada herramienta en su paso, para ver de un vistazo qué ha fallado.
+      # Son los mismos scripts de Composer que se usan en local.
+      - name: Estilo (PHPCS, PSR-12)
+        run: composer lint
+      - name: Análisis estático (PHPStan + Larastan)
+        if: ${{ !cancelled() }}
+        run: composer analyse
+      - name: Tests (Unit, Feature, Integration)
+        if: ${{ !cancelled() }}
+        run: composer test
+      - name: Cobertura (mínimo 70 % de líneas)
+        if: ${{ !cancelled() }}
+        run: composer coverage
+      - name: Informe de cobertura
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage
+          path: backend/build/coverage/
+          if-no-files-found: ignore
 
   frontend:
     runs-on: ubuntu-latest

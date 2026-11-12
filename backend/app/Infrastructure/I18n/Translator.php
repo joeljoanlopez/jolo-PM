@@ -21,7 +21,12 @@ final class Translator
         return (string) __('errors.' . $message->key, $params);
     }
 
-    /** Sustituye el Message de la clave `error` (si lo hay) por su texto. */
+    /**
+     * Sustituye el Message de la clave `error` (si lo hay) por su texto.
+     *
+     * @param array<string, mixed> $data
+     * @return array<string, mixed>
+     */
     public static function translateErrorIn(array $data): array
     {
         if (($data['error'] ?? null) instanceof Message) {

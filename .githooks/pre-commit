@@ -1,0 +1,59 @@
+#!/bin/sh
+# Pasa PHPCS y PHPStan sobre los ficheros PHP del backend que van en el commit.
+#
+# Se activa una vez por copia del repo:
+#     git config core.hooksPath .githooks
+# Se salta con `git commit --no-verify`; el CI sigue siendo la barrera final.
+#
+# Usa el PHP del sistema si lo hay y, si no, la imagen `composer:2` de Docker.
+# Necesita las dependencias del backend instaladas (`backend/vendor`).
+# Revisa los ficheros tal como están en disco, no solo la parte añadida al
+# índice con `git add -p`.
+
+set -eu
+
+root=$(git rev-parse --show-toplevel)
+backend="$root/backend"
+
+# Rutas relativas a backend/, una por línea. PHPCS mira lo mismo que phpcs.xml;
+# PHPStan, solo app/ como phpstan.neon.
+staged=$(git diff --cached --name-only --diff-filter=ACMR -- 'backend/*.php' | sed 's|^backend/||')
+lint=$(printf '%s\n' "$staged" | grep -E '^(app|tests|database|routes)/' || true)
+analyse=$(printf '%s\n' "$staged" | grep -E '^app/' || true)
+
+[ -z "$lint" ] && [ -z "$analyse" ] && exit 0
+
+if [ ! -x "$backend/vendor/bin/phpcs" ] || [ ! -x "$backend/vendor/bin/phpstan" ]; then
+    echo "pre-commit: faltan las dependencias del backend (composer install). No se revisa nada." >&2
+    exit 0
+fi
+
+if command -v php >/dev/null 2>&1; then
+    run() { (cd "$backend" && php "$@"); }
+elif command -v docker >/dev/null 2>&1; then
+    run() {
+        docker run --rm -u "$(id -u):$(id -g)" -v "$backend:/app" -w /app composer:2 php "$@"
+    }
+else
+    echo "pre-commit: no hay php ni docker. No se revisa nada; lo hará el CI." >&2
+    exit 0
+fi
+
+status=0
+
+if [ -n "$lint" ]; then
+    echo "pre-commit: PHPCS"
+    # shellcheck disable=SC2086 # una ruta por palabra: no llevan espacios
+    run vendor/bin/phpcs -q $lint || status=1
+fi
+
+if [ -n "$analyse" ]; then
+    echo "pre-commit: PHPStan"
+    # shellcheck disable=SC2086
+    run vendor/bin/phpstan analyse --no-progress --memory-limit=1G $analyse || status=1
+fi
+
+if [ "$status" -ne 0 ]; then
+    echo "pre-commit: arregla lo de arriba (composer lint:fix ayuda con el estilo) o usa --no-verify." >&2
+fi
+exit "$status"

@@ -23,6 +23,9 @@ final class GitHubAnchorsTest extends TestCase
     {
         $anchors = new GitHubAnchors();
 
-        $this->assertSame(['tareas', 'tareas-1', 'tareas-2'], [$anchors->next('Tareas'), $anchors->next('Tareas'), $anchors->next('tareas')]);
+        $this->assertSame(
+            ['tareas', 'tareas-1', 'tareas-2'],
+            [$anchors->next('Tareas'), $anchors->next('Tareas'), $anchors->next('tareas')],
+        );
     }
 }
