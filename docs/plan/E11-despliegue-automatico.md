@@ -39,4 +39,4 @@ sin abrir puertos ni instalar un runner de GitHub. Es **opcional** y viene
 - [x] `deploy/auto-deploy.sh` con las comprobaciones de rama, cambios locales y CI
 - [x] Units de systemd de usuario y script de instalación y desinstalación
 - [x] Sección en el README: activar, instalar el timer, `loginctl enable-linger` y ver logs
-- [ ] Probado en el servidor: no-op desactivado, deploy tras un merge, CI en rojo bloquea
+- [x] Probado en el servidor: no-op desactivado, deploy tras un merge, CI en rojo bloquea
