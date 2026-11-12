@@ -17,8 +17,11 @@ final class ArchitectureTest extends TestCase
     /** @return iterable<string, array{string, list<string>}> */
     public static function layers(): iterable
     {
-        yield 'Domain' => ['Domain', ['Illuminate\\', 'Symfony\\', 'App\\Application\\', 'App\\Infrastructure\\', 'App\\Providers\\']];
-        yield 'Application' => ['Application', ['Illuminate\\', 'Symfony\\', 'App\\Infrastructure\\', 'App\\Providers\\']];
+        $framework = ['Illuminate\\', 'Symfony\\'];
+        $outer = ['App\\Infrastructure\\', 'App\\Providers\\'];
+
+        yield 'Domain' => ['Domain', [...$framework, 'App\\Application\\', ...$outer]];
+        yield 'Application' => ['Application', [...$framework, ...$outer]];
     }
 
     /** @param list<string> $forbidden */

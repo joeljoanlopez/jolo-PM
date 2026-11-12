@@ -18,7 +18,8 @@ final class MarkdownTaskParserTest extends TestCase
 
     public function test_reads_checkboxes_with_any_list_marker(): void
     {
-        $doc = $this->parser->parse('a.md', "- [ ] uno\n* [x] dos\n+ [X] tres\n1. [ ] cuatro\n2) [x] cinco\n- no es tarea\n-[ ] tampoco");
+        $markdown = "- [ ] uno\n* [x] dos\n+ [X] tres\n1. [ ] cuatro\n2) [x] cinco\n- no es tarea\n-[ ] tampoco";
+        $doc = $this->parser->parse('a.md', $markdown);
 
         $this->assertSame(['uno', 'dos', 'tres', 'cuatro', 'cinco'], array_map(fn ($t) => $t->text, $doc->tasks));
         $this->assertSame([false, true, true, false, true], array_map(fn ($t) => $t->checked, $doc->tasks));
@@ -46,7 +47,10 @@ final class MarkdownTaskParserTest extends TestCase
         $tasks = $this->parser->parse('a.md', $markdown)->tasks;
 
         $this->assertSame([0, 1, 2, 1, 0], array_map(fn ($t) => $t->depth, $tasks));
-        $this->assertSame(['Ejercicios', 'Ejercicios', 'Ejercicios', 'Ejercicios', 'Checklist'], array_map(fn ($t) => $t->section, $tasks));
+        $this->assertSame(
+            ['Ejercicios', 'Ejercicios', 'Ejercicios', 'Ejercicios', 'Checklist'],
+            array_map(fn ($t) => $t->section, $tasks),
+        );
         $this->assertSame([3, 4, 5, 6, 8], array_map(fn ($t) => $t->line, $tasks));
     }
 

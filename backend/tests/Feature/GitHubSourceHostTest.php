@@ -44,7 +44,8 @@ final class GitHubSourceHostTest extends TestCase
             'api.github.test/repos/o/r/pulls*' => Http::response(
                 [['number' => 1, 'title' => 'A', 'html_url' => 'u1', 'draft' => false, 'head' => ['sha' => 'h1']]],
                 200,
-                ['Link' => '<https://api.github.test/repos/o/r/pulls?state=open&base=main&per_page=100&page=2>; rel="next"'],
+                ['Link' => '<https://api.github.test/repos/o/r/pulls?state=open&base=main&per_page=100&page=2>; '
+                    . 'rel="next"'],
             ),
         ]);
 
@@ -56,7 +57,8 @@ final class GitHubSourceHostTest extends TestCase
 
     public function test_blob_is_base64_decoded(): void
     {
-        Http::fake(['*' => Http::response(['encoding' => 'base64', 'content' => chunk_split(base64_encode("- [x] á\n"), 8, "\n")])]);
+        $content = chunk_split(base64_encode("- [x] á\n"), 8, "\n");
+        Http::fake(['*' => Http::response(['encoding' => 'base64', 'content' => $content])]);
 
         $this->assertSame("- [x] á\n", $this->host()->blob('o', 'r', 'abc'));
     }
@@ -96,7 +98,9 @@ final class GitHubSourceHostTest extends TestCase
 
     public function test_rate_limit(): void
     {
-        Http::fake(['*' => Http::response(['message' => 'API rate limit exceeded'], 403, ['X-RateLimit-Remaining' => '0'])]);
+        Http::fake([
+            '*' => Http::response(['message' => 'API rate limit exceeded'], 403, ['X-RateLimit-Remaining' => '0']),
+        ]);
 
         $this->expectExceptionMessage('rate_limited');
         $this->host()->repository('o', 'r');

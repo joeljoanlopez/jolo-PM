@@ -21,6 +21,7 @@ class ProjectRecord extends Model
 
     protected $casts = ['paths' => 'array'];
 
+    /** @return HasOne<BoardSnapshot, $this> */
     public function snapshot(): HasOne
     {
         return $this->hasOne(BoardSnapshot::class, 'project_id');

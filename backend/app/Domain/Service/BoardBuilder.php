@@ -71,7 +71,11 @@ final class BoardBuilder
         $groups = [];
         foreach ($document->tasks as $task) {
             $anchor = $task->chapterAnchor;
-            $groups[$anchor ?? ''] ??= ['anchor' => $anchor, 'title' => $task->chapter !== null ? $document->title . '/' . $task->chapter : $document->title, 'tasks' => []];
+            $groups[$anchor ?? ''] ??= [
+                'anchor' => $anchor,
+                'title' => $task->chapter !== null ? $document->title . '/' . $task->chapter : $document->title,
+                'tasks' => [],
+            ];
             $groups[$anchor ?? '']['tasks'][] = $task;
         }
 
