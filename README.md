@@ -85,6 +85,45 @@ El worker sincroniza todos los proyectos cada 5 minutos (`SYNC_CRON`); el botón
 La web está en castellano y en inglés: el selector **ES | EN** de la cabecera
 cambia el idioma y se recuerda en el navegador.
 
+### Despliegue automático (opcional)
+
+El servidor puede actualizarse solo cuando se hace merge a `main`, sin abrir
+puertos ni instalar un runner de GitHub: un timer de systemd **de usuario**
+lanza `deploy/auto-deploy.sh` cada 5 minutos. Cuando hay un commit nuevo en
+`origin/main` con el CI en verde, el script hace fast-forward y
+`docker compose up -d --build`. Si el CI está pendiente, lo intenta en la
+siguiente vuelta, y si está en rojo, no despliega. Tampoco toca nada si la
+copia está en otra rama, tiene cambios sin commitear o tiene commits que no
+están en `origin/main`: lo deja registrado y sale.
+
+Viene desactivado. Para activarlo, en el servidor:
+
+```sh
+# 1. En .env
+AUTO_DEPLOY=true
+
+# 2. Instala y arranca el timer (sin sudo; AUTO_DEPLOY_INTERVAL=10min para cambiar el intervalo)
+deploy/install-auto-deploy.sh
+
+# 3. Para que el timer corra sin una sesión abierta
+loginctl enable-linger "$USER"
+```
+
+Requisitos: tu usuario puede usar `docker` sin sudo, y está instalado `gh`
+autenticado o, si no, `curl` y `jq` (el repo es público y la API se consulta
+sin token).
+
+```sh
+systemctl --user list-timers jolo-pm-deploy.timer   # próxima ejecución
+journalctl --user -u jolo-pm-deploy.service -f      # logs
+systemctl --user start jolo-pm-deploy.service       # comprobar ahora
+deploy/install-auto-deploy.sh uninstall             # quitarlo
+```
+
+Con `AUTO_DEPLOY` distinto de `true`, el timer sigue corriendo pero no hace
+nada. Si el `compose` falla después del merge, se reintenta en cada vuelta
+hasta que sale bien.
+
 ## Desarrollo
 
 Arquitectura hexagonal en backend y frontend; ver

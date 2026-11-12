@@ -35,8 +35,8 @@ sin abrir puertos ni instalar un runner de GitHub. Es **opcional** y viene
 - Con cambios locales sin commitear, el script no los pisa: avisa y sale.
 
 ## Subtareas
-- [ ] `AUTO_DEPLOY=false` en `.env.example`, documentada
-- [ ] `deploy/auto-deploy.sh` con las comprobaciones de rama, cambios locales y CI
-- [ ] Units de systemd de usuario y script de instalación y desinstalación
-- [ ] Sección en el README: activar, instalar el timer, `loginctl enable-linger` y ver logs
+- [x] `AUTO_DEPLOY=false` en `.env.example`, documentada
+- [x] `deploy/auto-deploy.sh` con las comprobaciones de rama, cambios locales y CI
+- [x] Units de systemd de usuario y script de instalación y desinstalación
+- [x] Sección en el README: activar, instalar el timer, `loginctl enable-linger` y ver logs
 - [ ] Probado en el servidor: no-op desactivado, deploy tras un merge, CI en rojo bloquea
