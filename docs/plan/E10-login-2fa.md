@@ -36,11 +36,14 @@ y la VPN, y cualquiera de dentro ve los repos a los que tiene acceso el token.
 - El secreto se guarda **cifrado**, nunca en claro.
 - **10 códigos de recuperación** de un solo uso, guardados con hash. Se
   muestran una única vez al activar el 2FA y se pueden regenerar con la sesión
-  iniciada.
+  iniciada **y un código TOTP válido** (no basta la sesión: alguien con una
+  sesión abierta ajena no puede quedarse los códigos).
 - Si se pierde la contraseña, el móvil o los códigos de recuperación:
   `php artisan auth:reset` borra la cuenta (no los proyectos) y la web vuelve
   al asistente de configuración inicial, con un código nuevo en los logs. Es la
-  única operación por consola, y solo para recuperar el acceso.
+  única operación por consola, y solo para recuperar el acceso. También es la
+  forma de **cambiar la contraseña o el dispositivo del 2FA**: no hay pantalla
+  para ello en la web.
 
 ### Flujo de login (dos pasos)
 - `GET /api/auth/setup` dice si hace falta la configuración inicial;
@@ -59,14 +62,17 @@ y la VPN, y cualquiera de dentro ve los repos a los que tiene acceso el token.
   (por ejemplo, 5 por minuto). Al superarlo: 429 con el tiempo de espera.
 - **IP real del cliente**: la app está detrás de nginx, así que Laravel solo se
   fía de `X-Forwarded-For` cuando la petición viene del proxy (`TrustProxies`
-  con su IP, configurable). Si no, todas las peticiones llegarían con la IP de
+  con su IP en `TRUSTED_PROXIES`). Si no, todas las peticiones llegarían con la IP de
   nginx y el límite de intentos sería global: cualquiera de la red podría
   bloquear el login.
 - Cookie de sesión `HttpOnly`, `Secure` y `SameSite=Strict`, con caducidad por
-  inactividad configurable (`SESSION_LIFETIME`, 7 días por defecto).
+  inactividad configurable (`SESSION_LIFETIME`, 7 días por defecto). Sin
+  caducidad absoluta: mientras se use, la sesión no caduca.
 - Protección CSRF con el mecanismo de Laravel: cookie `XSRF-TOKEN` y cabecera
   `X-XSRF-TOKEN` en cada petición que modifica algo.
-- Un registro de cada inicio de sesión, correcto o fallido, con IP y hora.
+- Un registro de cada inicio de sesión, correcto o fallido, con IP y hora. Se
+  guarda solo en la base de datos (sin pantalla en la web) y se purga a los
+  **90 días**.
 - `APP_KEY` pasa a ser obligatoria, porque cifra las cookies y el secreto TOTP:
   `${APP_KEY:?}` en el compose y su generación documentada en el README.
 - El worker no cambia: corre por consola y no pasa por HTTP.
@@ -84,8 +90,15 @@ y la VPN, y cualquiera de dentro ve los repos a los que tiene acceso el token.
   configuración inicial, las pantallas de login y de código, y un guardián que manda a login ante
   cualquier 401.
 
+- **Idiomas**: las pantallas nuevas (asistente, login, código) se traducen a
+  `es` y `en` con el mismo sistema de la E12.
+
 ### Fuera de alcance
 - Varios usuarios.
+- Pantalla para cambiar la contraseña o el 2FA: se hace con `auth:reset`.
+- Botón de «cerrar todas las sesiones»: solo se cierra la sesión actual; para
+  echar a todas, `auth:reset`.
+- Pantalla con el registro de inicios de sesión.
 - Passkeys (WebAuthn): están en el backlog (E09.6). Login con GitHub o SSO: no.
 - Autenticación en el proxy (Authelia, cabeceras de Tailscale). Es una
   alternativa válida que no toca la app, pero se descarta para que la app se
@@ -96,6 +109,7 @@ y la VPN, y cualquiera de dentro ve los repos a los que tiene acceso el token.
 - Con la contraseña correcta pero sin el segundo factor, tampoco hay acceso.
 - Un código TOTP ya usado se rechaza aunque siga dentro de su ventana.
 - Un código de recuperación funciona una sola vez.
+- Regenerar los códigos de recuperación sin un código TOTP válido se rechaza.
 - Sin el código de configuración de los logs no se puede crear la cuenta, y una
   vez creada el asistente responde 404.
 - El 6.º intento fallido en un minuto devuelve 429.
@@ -112,14 +126,14 @@ y la VPN, y cualquiera de dentro ve los repos a los que tiene acceso el token.
 - [ ] Rechazo de códigos reutilizados (último periodo usado)
 - [ ] Códigos de recuperación: generación, hash y consumo de un solo uso
 - [ ] Secreto TOTP cifrado (puerto `SecretCipher` + adaptador con `Crypt`)
-- [ ] Casos de uso de login en dos pasos y regeneración de códigos de recuperación
+- [ ] Casos de uso de login en dos pasos y regeneración de códigos de recuperación (con código TOTP)
 - [ ] Rutas `/api/auth/*`, middleware de autenticación y 401 en el resto de la API
 - [ ] Límite de intentos por IP en login, 2FA y configuración (429)
 - [ ] IP real del cliente detrás de nginx (`TrustProxies` solo para el proxy)
 - [ ] Sesión en cookie segura, CSRF y `APP_KEY` obligatoria
-- [ ] Registro de inicios de sesión
+- [ ] Registro de inicios de sesión y purga de los de más de 90 días
 - [ ] Comando `auth:reset` para recuperar el acceso
-- [ ] Frontend: `AuthGateway`, asistente de configuración con QR, pantallas de login y código
+- [ ] Frontend: `AuthGateway`, asistente de configuración con QR, pantallas de login y código (`es`/`en`)
 - [ ] Frontend: redirección a login ante 401 y botón de cerrar sesión
 - [ ] Tests de API del flujo completo, incluidos límite de intentos, CSRF y 401 sin sesión en los flujos de `tests/Integration/Http`
-- [ ] README: configuración inicial, `APP_KEY` y qué hacer si se pierde el acceso
+- [ ] README: configuración inicial, `APP_KEY`, `TRUSTED_PROXIES` y qué hacer si se pierde el acceso
