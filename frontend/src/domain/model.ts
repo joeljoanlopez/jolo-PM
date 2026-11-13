@@ -84,3 +84,18 @@ export interface ProjectInput {
   paths: string[];
   name: string | null;
 }
+
+/** Paso de la sesión: configuración inicial, contraseña, segundo factor o dentro. */
+export type AuthState = "setup" | "login" | "two_factor" | "authenticated";
+
+export interface AuthStatus {
+  state: AuthState;
+  /** Solo con la sesión iniciada. */
+  recoveryCodesLeft?: number;
+}
+
+/** Secreto TOTP propuesto en la configuración inicial. */
+export interface TotpEnrollment {
+  secret: string;
+  otpauthUri: string;
+}

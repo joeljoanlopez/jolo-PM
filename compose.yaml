@@ -10,8 +10,14 @@ x-backend-env: &backend-env
   LOG_CHANNEL: stderr
   DB_CONNECTION: sqlite
   DB_DATABASE: /data/jolo-pm.sqlite
+  # Cifra las cookies de sesión y el secreto TOTP. Si cambia, hay que volver
+  # a dar de alta el 2FA (php artisan auth:reset).
+  APP_KEY: ${APP_KEY:?define APP_KEY en .env (ver README)}
   CACHE_STORE: file
-  SESSION_DRIVER: array
+  # Sesiones en la base de datos: sobreviven a reinicios del contenedor.
+  SESSION_DRIVER: database
+  SESSION_LIFETIME: ${SESSION_LIFETIME:-10080}
+  SESSION_SECURE_COOKIE: ${SESSION_SECURE_COOKIE:-true}
   QUEUE_CONNECTION: sync
   # `:?` para no arrancar con un token vacío y fallar en cada sincronización.
   GITHUB_TOKEN: ${GITHUB_TOKEN:?define GITHUB_TOKEN en .env (ver .env.example)}
@@ -35,8 +41,7 @@ services:
     restart: unless-stopped
     ports:
       # Solo en localhost: se expone con un proxy inverso delante (las labels
-      # de abajo son para un generador de vhosts de nginx), que es quien debe
-      # restringir el acceso: la app no tiene login.
+      # de abajo son para un generador de vhosts de nginx).
       - "127.0.0.1:${JOLOPM_PORT:-8095}:80"
     labels:
       - "nginx.autoconf=true"

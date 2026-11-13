@@ -6,13 +6,19 @@ namespace App\Infrastructure\Http;
 
 use App\Domain\Exception\DomainException;
 use App\Domain\Exception\DuplicateProject;
+use App\Domain\Exception\InvalidCredentials;
+use App\Domain\Exception\LoginRequired;
 use App\Domain\Exception\ProjectNotFound;
 use App\Domain\Exception\RepositoryNotAccessible;
+use App\Domain\Exception\SetupNotAvailable;
+use App\Domain\Exception\SetupRequired;
 use App\Domain\Exception\SourceUnavailable;
+use App\Domain\Exception\TooManyAttempts;
 use App\Domain\Exception\ValidationFailed;
 use App\Infrastructure\I18n\Translator;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
@@ -34,6 +40,14 @@ final class ApiExceptionRenderer
             $e instanceof NotFoundHttpException => self::error(404, 'not_found', __('errors.route_not_found')),
             $e instanceof DuplicateProject => self::domain(409, 'duplicate_project', $e),
             $e instanceof SourceUnavailable => self::domain(502, 'source_unavailable', $e),
+            $e instanceof LoginRequired => self::domain(401, 'unauthenticated', $e),
+            $e instanceof InvalidCredentials => self::domain(422, 'invalid_credentials', $e),
+            $e instanceof TooManyAttempts => self::domain(429, 'too_many_attempts', $e)
+                ->header('Retry-After', (string) $e->retryAfter),
+            $e instanceof SetupNotAvailable => self::domain(404, 'not_found', $e),
+            $e instanceof SetupRequired => self::domain(409, 'setup_required', $e),
+            // Laravel convierte el fallo de CSRF en un 419.
+            $e instanceof HttpException && $e->getStatusCode() === 419 => self::error(419, 'csrf_mismatch', __('errors.auth.csrf_mismatch')),
             $e instanceof DomainException => self::domain(400, 'domain_error', $e),
             // Lo demás lo gestiona Laravel (500 con detalle solo si APP_DEBUG).
             default => null,

@@ -14,6 +14,19 @@ return [
     'unexpected_response' => 'GitHub responded :status when reading :resource: :detail',
     'legacy' => ':text',
 
+    'auth' => [
+        'unauthenticated' => 'Sign in to continue.',
+        'second_factor_expired' => 'The sign-in has expired; enter your password again.',
+        'setup_expired' => 'The setup has expired; start again.',
+        'invalid_password' => 'Wrong password.',
+        'invalid_code' => 'Wrong or already used code.',
+        'invalid_setup_code' => 'Wrong setup code. Look for it in the backend logs.',
+        'too_many_attempts' => 'Too many attempts. Wait :seconds s and try again.',
+        'setup_not_available' => 'The account already exists.',
+        'setup_required' => 'There is no account yet: complete the initial setup.',
+        'csrf_mismatch' => 'The session has changed; reload the page.',
+    ],
+
     'resource' => [
         'repository' => 'the repository :repository',
         'repositories' => 'your repositories',
@@ -28,6 +41,8 @@ return [
         'branch_invalid' => 'Invalid branch name.',
         'paths_required' => 'Enter at least one path or glob, e.g. docs/**/*.md.',
         'name_too_long' => 'The name cannot be longer than 100 characters.',
+        'password_too_short' => 'The password must be at least :min characters long.',
+        'password_mismatch' => 'The passwords do not match.',
     ],
 
     'request' => [

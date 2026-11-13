@@ -16,6 +16,19 @@ return [
     // Errores guardados antes de que hubiera traducciones: ya vienen en texto.
     'legacy' => ':text',
 
+    'auth' => [
+        'unauthenticated' => 'Inicia sesión para continuar.',
+        'second_factor_expired' => 'El inicio de sesión ha caducado; vuelve a introducir la contraseña.',
+        'setup_expired' => 'La configuración ha caducado; vuelve a empezar.',
+        'invalid_password' => 'Contraseña incorrecta.',
+        'invalid_code' => 'Código incorrecto o ya usado.',
+        'invalid_setup_code' => 'Código de configuración incorrecto. Búscalo en los logs del backend.',
+        'too_many_attempts' => 'Demasiados intentos. Espera :seconds s y vuelve a probar.',
+        'setup_not_available' => 'La cuenta ya está creada.',
+        'setup_required' => 'Aún no hay cuenta: completa la configuración inicial.',
+        'csrf_mismatch' => 'La sesión ha cambiado; recarga la página.',
+    ],
+
     'resource' => [
         'repository' => 'el repositorio :repository',
         'repositories' => 'tus repositorios',
@@ -30,6 +43,8 @@ return [
         'branch_invalid' => 'Nombre de rama no válido.',
         'paths_required' => 'Indica al menos una ruta o glob, por ejemplo docs/**/*.md.',
         'name_too_long' => 'El nombre no puede pasar de 100 caracteres.',
+        'password_too_short' => 'La contraseña debe tener al menos :min caracteres.',
+        'password_mismatch' => 'Las contraseñas no coinciden.',
     ],
 
     'request' => [

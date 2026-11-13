@@ -100,20 +100,20 @@ y la VPN, y cualquiera de dentro ve los repos a los que tiene acceso el token.
   `Application`.
 
 ## Subtareas
-- [ ] Modelo `Account` (usuario único) y migración
-- [ ] Código de configuración: generado al arrancar sin cuenta, escrito en los logs y de un solo uso
-- [ ] Asistente de configuración inicial en la API (contraseña + alta del 2FA + códigos de recuperación)
-- [ ] `TotpVerifier` en el dominio, probado con los vectores del RFC 6238
-- [ ] Rechazo de códigos reutilizados (último periodo usado)
-- [ ] Códigos de recuperación: generación, hash y consumo de un solo uso
-- [ ] Secreto TOTP cifrado (puerto `SecretCipher` + adaptador con `Crypt`)
-- [ ] Casos de uso de login en dos pasos y regeneración de códigos de recuperación
-- [ ] Rutas `/api/auth/*`, middleware de autenticación y 401 en el resto de la API
-- [ ] Límite de intentos por IP en login, 2FA y configuración (429)
-- [ ] Sesión en cookie segura, CSRF y `APP_KEY` obligatoria
-- [ ] Registro de inicios de sesión
-- [ ] Comando `auth:reset` para recuperar el acceso
-- [ ] Frontend: `AuthGateway`, asistente de configuración con QR, pantallas de login y código
-- [ ] Frontend: redirección a login ante 401 y botón de cerrar sesión
-- [ ] Tests de API del flujo completo, incluidos límite de intentos y CSRF
-- [ ] README: configuración inicial, `APP_KEY` y qué hacer si se pierde el acceso
+- [x] Modelo `Account` (usuario único) y migración
+- [x] Código de configuración: generado al arrancar sin cuenta, escrito en los logs y de un solo uso
+- [x] Asistente de configuración inicial en la API (contraseña + alta del 2FA + códigos de recuperación)
+- [x] `TotpVerifier` en el dominio, probado con los vectores del RFC 6238
+- [x] Rechazo de códigos reutilizados (último periodo usado)
+- [x] Códigos de recuperación: generación, hash y consumo de un solo uso
+- [x] Secreto TOTP cifrado (puerto `SecretCipher` + adaptador con `Crypt`)
+- [x] Casos de uso de login en dos pasos y regeneración de códigos de recuperación
+- [x] Rutas `/api/auth/*`, middleware de autenticación y 401 en el resto de la API
+- [x] Límite de intentos por IP en login, 2FA y configuración (429)
+- [x] Sesión en cookie segura, CSRF y `APP_KEY` obligatoria
+- [x] Registro de inicios de sesión
+- [x] Comando `auth:reset` para recuperar el acceso
+- [x] Frontend: `AuthGateway`, asistente de configuración con QR, pantallas de login y código
+- [x] Frontend: redirección a login ante 401 y botón de cerrar sesión
+- [x] Tests de API del flujo completo, incluidos límite de intentos y CSRF
+- [x] README: configuración inicial, `APP_KEY` y qué hacer si se pierde el acceso

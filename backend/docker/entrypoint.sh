@@ -12,6 +12,8 @@ php artisan route:cache --quiet
 
 if [ "${RUN_MIGRATIONS:-0}" = "1" ]; then
     php artisan migrate --force --no-interaction
+    # Sin cuenta, escribe en los logs el código para crearla desde la web.
+    php artisan auth:setup-code
 else
     # El worker espera a que el backend haya migrado, para no correr dos
     # migraciones a la vez sobre el mismo fichero SQLite.

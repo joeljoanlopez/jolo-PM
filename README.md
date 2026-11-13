@@ -31,7 +31,8 @@ código se ignoran. Las tareas se agrupan por el encabezado bajo el que están.
 ## Puesta en marcha
 
 ```sh
-cp .env.example .env      # y rellena GITHUB_TOKEN
+cp .env.example .env      # y rellena GITHUB_TOKEN y APP_KEY
+echo "APP_KEY=base64:$(openssl rand -base64 32)" >> .env   # una vez; no la cambies
 docker compose up -d --build
 ```
 
@@ -41,15 +42,61 @@ abrirla desde otros dispositivos, ponle delante un proxy inverso. El
 (`nginx.autoconf`, `nginx.domain`); si usas otro proxy, quítalas o cámbialas
 por las suyas.
 
-jolo-PM **no tiene login**: cualquiera que llegue a la web ve los repos a los
-que tiene acceso el token. Limita el acceso desde el proxy (red local, VPN…).
+`APP_KEY` es obligatoria: cifra las cookies de sesión y el secreto del 2FA. Si
+la cambias, el 2FA deja de funcionar y hay que volver a crear la cuenta (ver
+[Si pierdes el acceso](#si-pierdes-el-acceso)).
 
 La base de datos SQLite va a `./data`.
+
+### Acceso: contraseña y 2FA
+
+La web tiene **un solo usuario**, sin nombre: se entra con contraseña y un
+código de 6 dígitos de una app de autenticación (Aegis, 1Password, Google
+Authenticator…). Sin sesión, la API solo responde `/api/health` y `/api/auth/*`.
+
+**Primera vez.** Al arrancar sin cuenta, el backend escribe en sus logs un
+código de configuración de un solo uso:
+
+```sh
+docker compose logs backend      # busca "código de configuración"
+```
+
+Abre la web y sigue el asistente: el código de los logs → la contraseña (mínimo
+12 caracteres) → escanear el QR con la app y escribir un código → guardar los
+**10 códigos de recuperación**, que no se vuelven a mostrar. Sin acceso al
+servidor nadie puede crear la cuenta antes que tú. Cada arranque sin cuenta
+genera un código nuevo.
+
+**Día a día.** Contraseña y código. La sesión dura 7 días de inactividad
+(`SESSION_LIFETIME`, en minutos). Desde el escudo de la cabecera se ven los
+códigos de recuperación que quedan y se pueden generar otros; el botón de al
+lado cierra la sesión. Tras 5 intentos fallidos en un minuto desde la misma IP
+(contraseña, código o código de configuración), la API responde 429 hasta que
+pasa el minuto. Cada intento queda registrado con IP y hora en la tabla
+`login_attempts`.
+
+**HTTPS.** La cookie de sesión es `Secure`: el navegador solo la manda por
+HTTPS o a `localhost`. Si tu proxy sirve la web por HTTP, el login no se
+mantendrá; sírvela por HTTPS o, solo en una red de confianza, pon
+`SESSION_SECURE_COOKIE=false` en el `.env`. Para que el límite de intentos y el
+registro vean la IP real, el proxy debe mandar `X-Forwarded-For`.
+
+#### Si pierdes el acceso
+
+- **Sin el móvil:** en la pantalla del código, *Usar un código de recuperación*.
+  Cada uno vale una vez; luego genera otros desde el escudo de la cabecera.
+- **Sin contraseña, sin móvil y sin códigos:** borra la cuenta desde el servidor.
+  Los proyectos no se tocan; la web vuelve al asistente y el comando muestra el
+  código de configuración nuevo (también sale en los logs al reiniciar):
+
+  ```sh
+  docker compose exec backend php artisan auth:reset
+  ```
 
 ### Token de GitHub
 
 Solo necesita **leer**, y conviene que vea únicamente los repos que quieres
-seguir (ver la nota de arriba sobre el login). Opciones:
+seguir. Opciones:
 
 - **Fine-grained token** (recomendado): *Settings → Developer settings →
   Fine-grained tokens*. Acceso a los repos que quieras seguir y permisos de solo
@@ -101,3 +148,4 @@ npm test && npm run typecheck
 | `php artisan projects:sync [id]` | Sincroniza todos los proyectos, o uno |
 | `php artisan blobs:prune` | Purga la caché de ficheros sin usar (`BLOB_TTL_DAYS`) |
 | `php artisan schedule:list` | Muestra cuándo toca cada tarea |
+| `php artisan auth:reset` | Borra la cuenta para volver a crearla (en el contenedor `backend`; no toca los proyectos) |

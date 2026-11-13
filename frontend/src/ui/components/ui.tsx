@@ -71,3 +71,16 @@ export function Modal({ title, onClose, children, wide = false }: { title: React
     </div>
   );
 }
+
+export const inputClass =
+  "block w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm shadow-xs placeholder:text-zinc-400 focus:border-indigo-500 focus:outline-2 focus:outline-indigo-500/30 dark:border-zinc-700 dark:bg-zinc-950";
+
+export function Field({ label, hint, error, children }: { label: string; hint?: string; error?: string; children: ReactNode }) {
+  return (
+    <label className="block space-y-1">
+      <span className="text-sm font-medium">{label}</span>
+      {children}
+      {error ? <span className="block text-xs text-red-600 dark:text-red-400">{error}</span> : hint && <span className="block text-xs text-zinc-500">{hint}</span>}
+    </label>
+  );
+}
