@@ -57,6 +57,11 @@ y la VPN, y cualquiera de dentro ve los repos a los que tiene acceso el token.
   siempre.
 - **Límite de intentos** de login, de 2FA y del código de configuración, por IP
   (por ejemplo, 5 por minuto). Al superarlo: 429 con el tiempo de espera.
+- **IP real del cliente**: la app está detrás de nginx, así que Laravel solo se
+  fía de `X-Forwarded-For` cuando la petición viene del proxy (`TrustProxies`
+  con su IP, configurable). Si no, todas las peticiones llegarían con la IP de
+  nginx y el límite de intentos sería global: cualquiera de la red podría
+  bloquear el login.
 - Cookie de sesión `HttpOnly`, `Secure` y `SameSite=Strict`, con caducidad por
   inactividad configurable (`SESSION_LIFETIME`, 7 días por defecto).
 - Protección CSRF con el mecanismo de Laravel: cookie `XSRF-TOKEN` y cabecera
@@ -110,6 +115,7 @@ y la VPN, y cualquiera de dentro ve los repos a los que tiene acceso el token.
 - [ ] Casos de uso de login en dos pasos y regeneración de códigos de recuperación
 - [ ] Rutas `/api/auth/*`, middleware de autenticación y 401 en el resto de la API
 - [ ] Límite de intentos por IP en login, 2FA y configuración (429)
+- [ ] IP real del cliente detrás de nginx (`TrustProxies` solo para el proxy)
 - [ ] Sesión en cookie segura, CSRF y `APP_KEY` obligatoria
 - [ ] Registro de inicios de sesión
 - [ ] Comando `auth:reset` para recuperar el acceso
