@@ -24,8 +24,12 @@ final class Account
     ) {
     }
 
-    public static function create(string $passwordHash, string $encryptedTotpSecret, int $totpPeriod, RecoveryCodes $recoveryCodes): self
-    {
+    public static function create(
+        string $passwordHash,
+        string $encryptedTotpSecret,
+        int $totpPeriod,
+        RecoveryCodes $recoveryCodes,
+    ): self {
         return new self(bin2hex(random_bytes(16)), $passwordHash, $encryptedTotpSecret, $totpPeriod, $recoveryCodes);
     }
 

@@ -36,7 +36,10 @@ final class AuthSession
             return null;
         }
 
-        return new PendingLogin((string) $pending['account'], (new \DateTimeImmutable())->setTimestamp((int) $pending['expires']));
+        return new PendingLogin(
+            (string) $pending['account'],
+            (new \DateTimeImmutable())->setTimestamp((int) $pending['expires']),
+        );
     }
 
     /** Contraseña correcta: la sesión queda pendiente del segundo factor, no autenticada. */
@@ -44,7 +47,10 @@ final class AuthSession
     {
         $this->session->migrate(true);
         $this->session->forget(self::ACCOUNT);
-        $this->session->put(self::PENDING, ['account' => $pending->accountId, 'expires' => $pending->expiresAt->getTimestamp()]);
+        $this->session->put(self::PENDING, [
+            'account' => $pending->accountId,
+            'expires' => $pending->expiresAt->getTimestamp(),
+        ]);
     }
 
     /** Sesión iniciada: id y token CSRF nuevos, para que no valgan los de antes del login. */
@@ -69,7 +75,10 @@ final class AuthSession
     /** Guarda el hash de la contraseña y el secreto cifrado, nunca el secreto en claro. */
     public function startEnrollment(TwoFactorEnrollment $enrollment): void
     {
-        $this->session->put(self::ENROLLMENT, ['password' => $enrollment->passwordHash, 'secret' => $enrollment->encryptedSecret]);
+        $this->session->put(self::ENROLLMENT, [
+            'password' => $enrollment->passwordHash,
+            'secret' => $enrollment->encryptedSecret,
+        ]);
     }
 
     public function logout(): void

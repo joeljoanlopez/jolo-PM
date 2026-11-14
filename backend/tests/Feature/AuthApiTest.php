@@ -142,13 +142,22 @@ final class AuthApiTest extends TestCase
         $setupCode = $this->app->make(IssueSetupCode::class)->execute();
         $this->getJson('/api/auth/me')->assertJsonPath('state', 'setup');
         $this->getJson('/api/auth/setup')->assertOk()->assertJsonPath('required', true);
-        $this->postJson('/api/auth/login', ['password' => 'x'])->assertStatus(409)->assertJsonPath('error.code', 'setup_required');
+        $this->postJson('/api/auth/login', ['password' => 'x'])
+            ->assertStatus(409)->assertJsonPath('error.code', 'setup_required');
 
         $this->postJson('/api/auth/setup/code', ['setupCode' => $setupCode])->assertNoContent();
 
-        $this->postJson('/api/auth/setup/password', ['setupCode' => $setupCode, 'password' => 'short', 'passwordConfirmation' => 'short'])
+        $this->postJson('/api/auth/setup/password', [
+            'setupCode' => $setupCode,
+            'password' => 'short',
+            'passwordConfirmation' => 'short',
+        ])
             ->assertStatus(422)->assertJsonPath('error.fields.password', fn ($m) => str_contains($m, '12'));
-        $this->postJson('/api/auth/setup/password', ['setupCode' => $setupCode, 'password' => self::PASSWORD, 'passwordConfirmation' => 'otra cosa distinta'])
+        $this->postJson('/api/auth/setup/password', [
+            'setupCode' => $setupCode,
+            'password' => self::PASSWORD,
+            'passwordConfirmation' => 'otra cosa distinta',
+        ])
             ->assertStatus(422)->assertJsonPath('error.fields.passwordConfirmation', fn ($m) => $m !== '');
 
         $enrollment = $this->postJson('/api/auth/setup/password', [
@@ -156,10 +165,14 @@ final class AuthApiTest extends TestCase
             'password' => self::PASSWORD,
             'passwordConfirmation' => self::PASSWORD,
         ])->assertOk()->json();
-        $this->assertStringStartsWith('otpauth://totp/jolo-PM:jolo-PM?secret=' . $enrollment['secret'], $enrollment['otpauthUri']);
+        $this->assertStringStartsWith(
+            'otpauth://totp/jolo-PM:jolo-PM?secret=' . $enrollment['secret'],
+            $enrollment['otpauthUri'],
+        );
 
         // Hasta confirmar un código válido no hay cuenta.
-        $this->postJson('/api/auth/setup/two-factor', ['setupCode' => $setupCode, 'code' => '000000'])->assertStatus(422);
+        $this->postJson('/api/auth/setup/two-factor', ['setupCode' => $setupCode, 'code' => '000000'])
+            ->assertStatus(422);
         $this->assertSame(0, DB::table('accounts')->count());
 
         $codes = $this->postJson('/api/auth/setup/two-factor', [
@@ -191,7 +204,11 @@ final class AuthApiTest extends TestCase
 
         $this->postJson('/api/auth/setup/code', ['setupCode' => 'AAAA-BBBB-CCCC-DDDD'])
             ->assertStatus(422)->assertJsonPath('error.code', 'invalid_credentials');
-        $this->postJson('/api/auth/setup/password', ['setupCode' => 'AAAA-BBBB-CCCC-DDDD', 'password' => self::PASSWORD, 'passwordConfirmation' => self::PASSWORD])
+        $this->postJson('/api/auth/setup/password', [
+            'setupCode' => 'AAAA-BBBB-CCCC-DDDD',
+            'password' => self::PASSWORD,
+            'passwordConfirmation' => self::PASSWORD,
+        ])
             ->assertStatus(422);
         $this->postJson('/api/auth/setup/two-factor', ['setupCode' => 'AAAA-BBBB-CCCC-DDDD', 'code' => '123456'])
             ->assertUnauthorized();

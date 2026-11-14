@@ -20,7 +20,8 @@ final class ResetAccountCommand extends Command
 
     public function handle(ResetAccount $reset): int
     {
-        if (!$this->option('force') && !$this->confirm('Se borrará la cuenta y se cerrarán todas las sesiones. ¿Seguir?')) {
+        $question = 'Se borrará la cuenta y se cerrarán todas las sesiones. ¿Seguir?';
+        if (!$this->option('force') && !$this->confirm($question)) {
             return self::FAILURE;
         }
 

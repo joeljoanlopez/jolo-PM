@@ -21,7 +21,7 @@ final class Base32
 
         $out = '';
         foreach (str_split($bits, 5) as $chunk) {
-            $out .= self::ALPHABET[bindec(str_pad($chunk, 5, '0'))];
+            $out .= self::ALPHABET[(int) bindec(str_pad($chunk, 5, '0'))];
         }
 
         return $out;
@@ -43,7 +43,7 @@ final class Base32
         $out = '';
         foreach (str_split($bits, 8) as $chunk) {
             if (strlen($chunk) === 8) {
-                $out .= chr(bindec($chunk));
+                $out .= chr((int) bindec($chunk));
             }
         }
 

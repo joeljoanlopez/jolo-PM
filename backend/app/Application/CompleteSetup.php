@@ -67,8 +67,12 @@ final class CompleteSetup
     }
 
     /** Paso 2: valida la contraseña y propone un secreto TOTP. */
-    public function choosePassword(string $setupCode, string $password, string $confirmation, string $ip): TwoFactorEnrollment
-    {
+    public function choosePassword(
+        string $setupCode,
+        string $password,
+        string $confirmation,
+        string $ip,
+    ): TwoFactorEnrollment {
         $this->checkCode($setupCode, $ip);
         PasswordPolicy::validate($password, $confirmation);
 
@@ -89,8 +93,12 @@ final class CompleteSetup
      *
      * @return array{account: Account, recoveryCodes: list<string>}
      */
-    public function confirmTwoFactor(string $setupCode, TwoFactorEnrollment $enrollment, string $code, string $ip): array
-    {
+    public function confirmTwoFactor(
+        string $setupCode,
+        TwoFactorEnrollment $enrollment,
+        string $code,
+        string $ip,
+    ): array {
         $this->checkCode($setupCode, $ip);
 
         $key = 'two-factor:' . $ip;

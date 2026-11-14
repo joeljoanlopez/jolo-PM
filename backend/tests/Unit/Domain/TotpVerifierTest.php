@@ -57,7 +57,8 @@ final class TotpVerifierTest extends TestCase
 
         $this->assertNotNull($used);
         $this->assertNull($totp->verify($secret, $code, $now, $used), 'mismo código, mismo periodo');
-        $this->assertNull($totp->verify($secret, $totp->code($secret, $used - 1), $now, $used), 'periodo anterior al usado');
+        $previous = $totp->code($secret, $used - 1);
+        $this->assertNull($totp->verify($secret, $previous, $now, $used), 'periodo anterior al usado');
         $this->assertSame($used + 1, $totp->verify($secret, $totp->code($secret, $used + 1), $now, $used));
     }
 
@@ -83,6 +84,9 @@ final class TotpVerifierTest extends TestCase
     {
         $uri = (new TotpVerifier())->provisioningUri('ABCDEF', 'jolo-PM', 'jolo-PM');
 
-        $this->assertSame('otpauth://totp/jolo-PM:jolo-PM?secret=ABCDEF&issuer=jolo-PM&algorithm=SHA1&digits=6&period=30', $uri);
+        $this->assertSame(
+            'otpauth://totp/jolo-PM:jolo-PM?secret=ABCDEF&issuer=jolo-PM&algorithm=SHA1&digits=6&period=30',
+            $uri,
+        );
     }
 }

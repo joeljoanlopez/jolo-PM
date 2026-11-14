@@ -47,7 +47,8 @@ final class ApiExceptionRenderer
             $e instanceof SetupNotAvailable => self::domain(404, 'not_found', $e),
             $e instanceof SetupRequired => self::domain(409, 'setup_required', $e),
             // Laravel convierte el fallo de CSRF en un 419.
-            $e instanceof HttpException && $e->getStatusCode() === 419 => self::error(419, 'csrf_mismatch', __('errors.auth.csrf_mismatch')),
+            $e instanceof HttpException && $e->getStatusCode() === 419
+                => self::error(419, 'csrf_mismatch', __('errors.auth.csrf_mismatch')),
             $e instanceof DomainException => self::domain(400, 'domain_error', $e),
             // Lo demás lo gestiona Laravel (500 con detalle solo si APP_DEBUG).
             default => null,

@@ -46,7 +46,8 @@ final class AuthModelTest extends TestCase
         $this->assertSame(9, $remaining->remaining());
         $this->assertNull($remaining->consume($plain[3], $this->hasher), 'ya gastado');
         // Da igual cómo se escriba: mayúsculas, sin guion, con espacios.
-        $this->assertNotNull($remaining->consume(' ' . strtoupper(str_replace('-', '', $plain[4])) . ' ', $this->hasher));
+        $messy = ' ' . strtoupper(str_replace('-', '', $plain[4])) . ' ';
+        $this->assertNotNull($remaining->consume($messy, $this->hasher));
         $this->assertNull($codes->consume('nope0-nope0', $this->hasher));
     }
 

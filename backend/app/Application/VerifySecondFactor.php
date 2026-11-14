@@ -40,7 +40,12 @@ final class VerifySecondFactor
     {
         $now = $this->clock->now();
         $account = $this->accounts->get();
-        if ($pending === null || $account === null || $account->id !== $pending->accountId || $now > $pending->expiresAt) {
+        if (
+            $pending === null
+            || $account === null
+            || $account->id !== $pending->accountId
+            || $now > $pending->expiresAt
+        ) {
             throw LoginRequired::secondFactorExpired();
         }
 

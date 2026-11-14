@@ -28,7 +28,9 @@ final class DatabaseAccountRepository implements AccountRepository
             (string) $row->password_hash,
             (string) $row->totp_secret,
             $row->last_totp_period === null ? null : (int) $row->last_totp_period,
-            new RecoveryCodes(array_values(json_decode((string) $row->recovery_codes, true, flags: JSON_THROW_ON_ERROR))),
+            new RecoveryCodes(array_values(
+                json_decode((string) $row->recovery_codes, true, flags: JSON_THROW_ON_ERROR),
+            )),
         );
     }
 

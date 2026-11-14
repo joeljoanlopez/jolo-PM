@@ -15,7 +15,9 @@ final class PasswordPolicy
     public static function validate(string $password, string $confirmation): void
     {
         if (mb_strlen($password) < self::MIN_LENGTH) {
-            throw new ValidationFailed(['password' => new Message('validation.password_too_short', ['min' => self::MIN_LENGTH])]);
+            throw new ValidationFailed([
+                'password' => new Message('validation.password_too_short', ['min' => self::MIN_LENGTH]),
+            ]);
         }
         if (!hash_equals($password, $confirmation)) {
             throw new ValidationFailed(['passwordConfirmation' => new Message('validation.password_mismatch')]);
