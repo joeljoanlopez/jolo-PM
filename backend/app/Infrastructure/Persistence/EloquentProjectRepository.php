@@ -14,13 +14,12 @@ final class EloquentProjectRepository implements ProjectRepository
 {
     public function all(): array
     {
-        return ProjectRecord::query()
+        return array_values(ProjectRecord::query()
             ->orderBy('owner')
             ->orderBy('name')
             ->get()
             ->map(fn (ProjectRecord $record) => $record->toDomain())
-            ->values()
-            ->all();
+            ->all());
     }
 
     public function get(int $id): Project
@@ -55,6 +54,7 @@ final class EloquentProjectRepository implements ProjectRepository
             'branch' => $project->branch,
             'paths' => $project->paths,
             'display_name' => $project->displayName,
+            'group_by' => $project->groupBy->value,
         ])->save();
 
         return $record->toDomain();

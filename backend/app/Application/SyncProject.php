@@ -70,6 +70,7 @@ final class SyncProject
                 array_values($documents),
                 $versions,
                 new \DateTimeImmutable(),
+                $project->groupBy,
             );
         } catch (DomainException $e) {
             $this->boards->saveError($projectId, $e->reason, new \DateTimeImmutable());

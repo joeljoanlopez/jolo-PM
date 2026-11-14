@@ -45,6 +45,7 @@ return [
         'name_too_long' => 'El nombre no puede pasar de 100 caracteres.',
         'password_too_short' => 'La contraseña debe tener al menos :min caracteres.',
         'password_mismatch' => 'Las contraseñas no coinciden.',
+        'group_by_invalid' => 'Agrupa por "file" (fichero) o por "section" (sección).',
     ],
 
     'request' => [
@@ -61,5 +62,6 @@ return [
         'branch' => 'rama',
         'paths' => 'rutas',
         'name' => 'nombre',
+        'groupBy' => 'agrupar por',
     ],
 ];

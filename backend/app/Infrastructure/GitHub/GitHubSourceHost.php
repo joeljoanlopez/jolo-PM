@@ -34,7 +34,9 @@ final class GitHubSourceHost implements SourceHost
 
     public function repository(string $owner, string $name): RepositoryInfo
     {
-        return $this->toRepositoryInfo($this->get("/repos/$owner/$name", self::resource('repository', $owner, $name))->json());
+        $repo = $this->get("/repos/$owner/$name", self::resource('repository', $owner, $name))->json();
+
+        return $this->toRepositoryInfo($repo);
     }
 
     public function accessibleRepositories(): array
@@ -67,7 +69,10 @@ final class GitHubSourceHost implements SourceHost
 
     public function blob(string $owner, string $name, string $sha): string
     {
-        $blob = $this->get("/repos/$owner/$name/git/blobs/$sha", self::resource('blob', $owner, $name, ['sha' => $sha]))->json();
+        $blob = $this->get(
+            "/repos/$owner/$name/git/blobs/$sha",
+            self::resource('blob', $owner, $name, ['sha' => $sha]),
+        )->json();
         if (($blob['encoding'] ?? '') !== 'base64') {
             return (string) ($blob['content'] ?? '');
         }
@@ -94,7 +99,11 @@ final class GitHubSourceHost implements SourceHost
 
     public function pullRequestFiles(string $owner, string $name, int $number): array
     {
-        $items = $this->getAllPages("/repos/$owner/$name/pulls/$number/files", [], self::resource('pull', $owner, $name, ['number' => $number]));
+        $items = $this->getAllPages(
+            "/repos/$owner/$name/pulls/$number/files",
+            [],
+            self::resource('pull', $owner, $name, ['number' => $number]),
+        );
 
         $files = [];
         foreach ($items as $file) {

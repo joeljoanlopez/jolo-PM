@@ -1,6 +1,6 @@
 import { ArrowLeft, ExternalLink, GitBranch, RefreshCw, Settings, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { COLUMNS, age, groupByStatus } from "../../domain/board";
+import { COLUMNS, age, cardKey, groupByStatus } from "../../domain/board";
 import type { Card } from "../../domain/model";
 import { ProgressBar } from "../components/ProgressBar";
 import { Button, ErrorBanner, Modal, Spinner } from "../components/ui";
@@ -131,7 +131,7 @@ export function BoardPage({ id }: { id: number }) {
               </h2>
               <div className="mt-1 space-y-2">
                 {groups[status].map((card) => (
-                  <CardView key={card.path} card={card} onOpen={() => setSelected(card)} />
+                  <CardView key={cardKey(card)} card={card} onOpen={() => setSelected(card)} />
                 ))}
                 {groups[status].length === 0 && <p className="px-2 py-4 text-center text-xs text-zinc-400">{t.board.empty}</p>}
               </div>

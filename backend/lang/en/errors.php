@@ -43,6 +43,7 @@ return [
         'name_too_long' => 'The name cannot be longer than 100 characters.',
         'password_too_short' => 'The password must be at least :min characters long.',
         'password_mismatch' => 'The passwords do not match.',
+        'group_by_invalid' => 'Group by "file" or by "section".',
     ],
 
     'request' => [
@@ -59,5 +60,6 @@ return [
         'branch' => 'branch',
         'paths' => 'paths',
         'name' => 'name',
+        'groupBy' => 'group by',
     ],
 ];

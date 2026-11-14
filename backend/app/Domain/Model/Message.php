@@ -19,16 +19,21 @@ final class Message implements \JsonSerializable
     ) {
     }
 
-    /** @param array{key: string, params?: array<string, mixed>} $data */
+    /**
+     * Inverso de jsonSerialize(). Los parámetros que son arrays se leen como
+     * Message anidados.
+     *
+     * @param array{key: string, params?: array<string, mixed>} $data
+     */
     public static function fromArray(array $data): self
     {
-        return new self(
-            (string) $data['key'],
-            array_map(
-                static fn ($p) => is_array($p) ? self::fromArray($p) : $p,
-                $data['params'] ?? [],
-            ),
-        );
+        $params = [];
+        foreach ($data['params'] ?? [] as $name => $value) {
+            /** @var array{key: string, params?: array<string, mixed>}|string|int $value */
+            $params[$name] = is_array($value) ? self::fromArray($value) : $value;
+        }
+
+        return new self((string) $data['key'], $params);
     }
 
     /** @return array{key: string, params: array<string, mixed>} */

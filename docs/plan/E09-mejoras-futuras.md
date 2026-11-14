@@ -10,7 +10,7 @@ subtareas, lista para empezar cuando toque.
 | # | Sub-épica | Depende de |
 | --- | --- | --- |
 | E09.1 | [Sincronización instantánea con webhook de GitHub](E09.1-webhook-github.md) | — |
-| E09.2 | [Tarjeta por sección](E09.2-tarjeta-por-seccion.md) | — |
+| E09.2 | [Tarjeta por sección](E09.2-tarjeta-por-seccion.md) (hecha) | — |
 | E09.3 | [Historial de progreso](E09.3-historial-progreso.md) | — |
 | E09.4 | [Trabajo fuera de la rama principal](E09.4-trabajo-fuera-de-main.md) | — |
 | E09.5 | [Varios tokens de GitHub](E09.5-varios-tokens.md) | — |

@@ -52,7 +52,9 @@ final class FakeSourceHost implements SourceHost
                 }
             }
         }
-        throw new RepositoryNotAccessible(new Message('resource.blob', ['sha' => $sha, 'repository' => "$owner/$name"]));
+        throw new RepositoryNotAccessible(
+            new Message('resource.blob', ['sha' => $sha, 'repository' => "$owner/$name"]),
+        );
     }
 
     public function openPullRequests(string $owner, string $name, string $base): array

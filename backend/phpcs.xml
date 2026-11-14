@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<!-- Estilo del backend: `composer lint` (y `composer lint:fix` para arreglar lo automático). -->
+<ruleset name="jolo-PM">
+    <description>PSR-12</description>
+
+    <file>app</file>
+    <file>tests</file>
+    <file>database</file>
+    <file>routes</file>
+
+    <arg name="extensions" value="php"/>
+    <arg name="colors"/>
+    <arg value="sp"/>
+    <arg name="parallel" value="8"/>
+    <arg name="cache" value="storage/framework/cache/phpcs.cache"/>
+
+    <rule ref="PSR12"/>
+
+    <!-- Los tests se llaman test_lo_que_comprueban, como en Laravel. -->
+    <rule ref="PSR1.Methods.CamelCapsMethodName.NotCamelCaps">
+        <exclude-pattern>tests/*</exclude-pattern>
+    </rule>
+</ruleset>

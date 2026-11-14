@@ -1,0 +1,10 @@
+# Análisis estático del backend: `composer analyse`.
+# El nivel solo puede subir. El 9 hoy da ~44 errores, casi todos `mixed` del
+# JSON de GitHub y del contenedor; subirlo pide tipar esas entradas.
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    level: 8
+    paths:
+        - app

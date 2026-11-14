@@ -13,7 +13,8 @@ docs/plan/E03-github.md                       Por hacer   En curso   En revisió
 
 ## Cómo decide la columna
 
-Cada fichero seguido es una tarjeta. Su columna sale de sus casillas:
+Cada fichero seguido es una tarjeta (o cada sección `##`, si el proyecto agrupa
+por sección). Su columna sale de sus casillas:
 
 | Columna | Cuándo |
 | --- | --- |
@@ -33,6 +34,7 @@ código se ignoran. Las tareas se agrupan por el encabezado bajo el que están.
 ```sh
 cp .env.example .env      # y rellena GITHUB_TOKEN y APP_KEY
 echo "APP_KEY=base64:$(openssl rand -base64 32)" >> .env   # una vez; no la cambies
+mkdir -p data             # con tu usuario: si la crea Docker, es de root
 docker compose up -d --build
 ```
 
@@ -111,6 +113,13 @@ seguir. Opciones:
 Desde la web: **Añadir proyecto** → elige el repo, los globs de los ficheros a
 leer (uno por línea) y, si quieres, una rama distinta de la principal.
 
+**Una tarjeta por** fichero (por defecto) o por sección: con *Sección* cada
+encabezado `##` con casillas es una tarjeta (`Plan/Sección`) que enlaza a su
+ancla en GitHub, y
+las casillas anteriores al primer `##` van a una tarjeta con el título del
+fichero. Útil para planes que lo meten todo en un único `PLAN.md`. Renombrar una
+sección cuenta como tarjeta nueva.
+
 | Glob | Casa con |
 | --- | --- |
 | `docs/plan/*.md` | los `.md` de esa carpeta, sin subcarpetas |
@@ -122,6 +131,45 @@ El worker sincroniza todos los proyectos cada 5 minutos (`SYNC_CRON`); el botón
 
 La web está en castellano y en inglés: el selector **ES | EN** de la cabecera
 cambia el idioma y se recuerda en el navegador.
+
+### Despliegue automático (opcional)
+
+El servidor puede actualizarse solo cuando se hace merge a `main`, sin abrir
+puertos ni instalar un runner de GitHub: un timer de systemd **de usuario**
+lanza `deploy/auto-deploy.sh` cada 5 minutos. Cuando hay un commit nuevo en
+`origin/main` con el CI en verde, el script hace fast-forward y
+`docker compose up -d --build`. Si el CI está pendiente, lo intenta en la
+siguiente vuelta, y si está en rojo, no despliega. Tampoco toca nada si la
+copia está en otra rama, tiene cambios sin commitear o tiene commits que no
+están en `origin/main`: lo deja registrado y sale.
+
+Viene desactivado. Para activarlo, en el servidor:
+
+```sh
+# 1. En .env
+AUTO_DEPLOY=true
+
+# 2. Instala y arranca el timer (sin sudo; AUTO_DEPLOY_INTERVAL=10min para cambiar el intervalo)
+deploy/install-auto-deploy.sh
+
+# 3. Para que el timer corra sin una sesión abierta
+loginctl enable-linger "$USER"
+```
+
+Requisitos: tu usuario puede usar `docker` sin sudo, y está instalado `gh`
+autenticado o, si no, `curl` y `jq` (el repo es público y la API se consulta
+sin token).
+
+```sh
+systemctl --user list-timers jolo-pm-deploy.timer   # próxima ejecución
+journalctl --user -u jolo-pm-deploy.service -f      # logs
+systemctl --user start jolo-pm-deploy.service       # comprobar ahora
+deploy/install-auto-deploy.sh uninstall             # quitarlo
+```
+
+Con `AUTO_DEPLOY` distinto de `true`, el timer sigue corriendo pero no hace
+nada. Si el `compose` falla después del merge, se reintenta en cada vuelta
+hasta que sale bien.
 
 ## Desarrollo
 

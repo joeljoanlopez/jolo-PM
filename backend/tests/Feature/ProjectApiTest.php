@@ -7,6 +7,7 @@ namespace Tests\Feature;
 use App\Domain\Port\SourceHost;
 use App\Infrastructure\Cache\CachingSourceHost;
 use App\Domain\Port\ContentCache;
+use App\Infrastructure\Persistence\Models\BoardSnapshot;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Support\FakeSourceHost;
 use Tests\TestCase;
@@ -27,7 +28,8 @@ final class ProjectApiTest extends TestCase
             'README.md' => '- [ ] fuera del glob',
         ];
         // El adaptador real se cambia por el falso; la caché es la de verdad.
-        $this->app->instance(SourceHost::class, new CachingSourceHost($this->github, $this->app->make(ContentCache::class)));
+        $cache = $this->app->make(ContentCache::class);
+        $this->app->instance(SourceHost::class, new CachingSourceHost($this->github, $cache));
         $this->signIn();
     }
 
@@ -62,7 +64,7 @@ final class ProjectApiTest extends TestCase
 
     public function test_pr_checking_a_task_moves_card_to_review(): void
     {
-        $id = $this->postJson('/api/projects', ['repository' => 'o/r', 'paths' => ['docs/plan/*.md']])->json('project.id');
+        $id = $this->addPlan();
 
         $this->github->openPullRequest(12, ['docs/plan/E02.md' => "# E02\n- [x] c"]);
 
@@ -75,7 +77,7 @@ final class ProjectApiTest extends TestCase
 
     public function test_second_sync_uses_cached_contents(): void
     {
-        $id = $this->postJson('/api/projects', ['repository' => 'o/r', 'paths' => ['docs/plan/*.md']])->json('project.id');
+        $id = $this->addPlan();
         $this->github->blobRequests = [];
 
         $this->postJson("/api/projects/$id/sync")->assertOk();
@@ -85,7 +87,7 @@ final class ProjectApiTest extends TestCase
 
     public function test_update_and_delete(): void
     {
-        $id = $this->postJson('/api/projects', ['repository' => 'o/r', 'paths' => ['docs/plan/*.md']])->json('project.id');
+        $id = $this->addPlan();
 
         $this->patchJson("/api/projects/$id", ['paths' => ['**/*.md'], 'branch' => 'main'])
             ->assertOk()
@@ -94,6 +96,46 @@ final class ProjectApiTest extends TestCase
 
         $this->deleteJson("/api/projects/$id")->assertNoContent();
         $this->getJson("/api/projects/$id/board")->assertNotFound()->assertJsonPath('error.code', 'not_found');
+    }
+
+    public function test_projects_group_by_file_by_default(): void
+    {
+        $this->postJson('/api/projects', ['repository' => 'o/r', 'paths' => ['docs/plan/*.md']])
+            ->assertCreated()
+            ->assertJsonPath('project.groupBy', 'file')
+            ->assertJsonPath('board.cards.0.key', 'docs/plan/E01.md')
+            ->assertJsonCount(2, 'board.cards');
+    }
+
+    public function test_group_by_section_is_saved_and_editable(): void
+    {
+        $this->github->files['docs/plan/PLAN.md'] = "# Plan\n- [ ] suelta\n## A\n- [x] a\n## B\n- [ ] b";
+
+        $plan = ['repository' => 'o/r', 'paths' => ['docs/plan/PLAN.md'], 'groupBy' => 'section'];
+        $id = $this->postJson('/api/projects', $plan)
+            ->assertCreated()
+            ->assertJsonPath('project.groupBy', 'section')
+            ->assertJsonPath('board.cards.*.key', ['docs/plan/PLAN.md', 'docs/plan/PLAN.md#a', 'docs/plan/PLAN.md#b'])
+            ->json('project.id');
+
+        // Sin groupBy en la edición se conserva el que había.
+        $this->patchJson("/api/projects/$id", ['paths' => ['docs/plan/PLAN.md']])
+            ->assertOk()
+            ->assertJsonPath('project.groupBy', 'section');
+
+        $this->patchJson("/api/projects/$id", ['paths' => ['docs/plan/PLAN.md'], 'groupBy' => 'file'])
+            ->assertOk()
+            ->assertJsonPath('project.groupBy', 'file')
+            ->assertJsonCount(1, 'board.cards');
+
+        $this->getJson('/api/projects')->assertJsonPath('0.groupBy', 'file');
+    }
+
+    public function test_unknown_group_by_is_rejected(): void
+    {
+        $this->postJson('/api/projects', ['repository' => 'o/r', 'paths' => ['*.md'], 'groupBy' => 'carpeta'])
+            ->assertStatus(422)
+            ->assertJsonPath('error.fields.groupBy', fn ($m) => is_string($m) && $m !== '');
     }
 
     public function test_errors_have_a_stable_shape(): void
@@ -114,10 +156,11 @@ final class ProjectApiTest extends TestCase
 
     public function test_failed_sync_keeps_previous_board(): void
     {
-        $id = $this->postJson('/api/projects', ['repository' => 'o/r', 'paths' => ['docs/plan/*.md']])->json('project.id');
+        $id = $this->addPlan();
 
         // La rama desaparece: GitHub respondería 404 al pedir el árbol.
-        $this->app->instance(SourceHost::class, new class ($this->github) extends \Tests\Support\FailingSourceHost {});
+        $this->app->instance(SourceHost::class, new class ($this->github) extends \Tests\Support\FailingSourceHost {
+        });
 
         $this->postJson("/api/projects/$id/sync")->assertStatus(502);
 
@@ -129,9 +172,13 @@ final class ProjectApiTest extends TestCase
 
     public function test_errors_follow_the_request_language(): void
     {
-        $this->postJson('/api/projects', ['repository' => 'otro/repo', 'paths' => ['*.md']], ['Accept-Language' => 'en-GB,en;q=0.9'])
+        $request = ['repository' => 'otro/repo', 'paths' => ['*.md']];
+        $this->postJson('/api/projects', $request, ['Accept-Language' => 'en-GB,en;q=0.9'])
             ->assertStatus(422)
-            ->assertJsonPath('error.message', 'GitHub cannot find the repository otro/repo or the token has no access to it.');
+            ->assertJsonPath(
+                'error.message',
+                'GitHub cannot find the repository otro/repo or the token has no access to it.',
+            );
 
         $this->postJson('/api/projects', ['paths' => ['*.md']], ['Accept-Language' => 'en'])
             ->assertStatus(422)
@@ -147,8 +194,9 @@ final class ProjectApiTest extends TestCase
 
     public function test_saved_sync_error_is_translated_when_read(): void
     {
-        $id = $this->postJson('/api/projects', ['repository' => 'o/r', 'paths' => ['docs/plan/*.md']])->json('project.id');
-        $this->app->instance(SourceHost::class, new class ($this->github) extends \Tests\Support\FailingSourceHost {});
+        $id = $this->addPlan();
+        $this->app->instance(SourceHost::class, new class ($this->github) extends \Tests\Support\FailingSourceHost {
+        });
         $this->postJson("/api/projects/$id/sync");
 
         $this->getJson("/api/projects/$id/board", ['Accept-Language' => 'en'])
@@ -159,9 +207,18 @@ final class ProjectApiTest extends TestCase
 
     public function test_errors_saved_before_translations_are_shown_as_is(): void
     {
-        $id = $this->postJson('/api/projects', ['repository' => 'o/r', 'paths' => ['docs/plan/*.md']])->json('project.id');
-        \App\Infrastructure\Persistence\Models\BoardSnapshot::where('project_id', $id)->update(['error' => 'Texto antiguo.']);
+        $id = $this->addPlan();
+        BoardSnapshot::where('project_id', $id)->update(['error' => 'Texto antiguo.']);
 
-        $this->getJson("/api/projects/$id/board", ['Accept-Language' => 'en'])->assertJsonPath('error', 'Texto antiguo.');
+        $this->getJson("/api/projects/$id/board", ['Accept-Language' => 'en'])
+            ->assertJsonPath('error', 'Texto antiguo.');
+    }
+
+    /** Da de alta el proyecto `o/r` con los planes de docs/plan y devuelve su id. */
+    private function addPlan(): int
+    {
+        return $this->postJson('/api/projects', ['repository' => 'o/r', 'paths' => ['docs/plan/*.md']])
+            ->assertCreated()
+            ->json('project.id');
     }
 }
