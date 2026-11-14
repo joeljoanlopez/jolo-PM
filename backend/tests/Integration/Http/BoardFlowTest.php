@@ -12,8 +12,7 @@ use Tests\Support\FakeGitHub;
  * Aceptación de extremo a extremo: solo la API HTTP, con GitHub falso y todo
  * lo demás de verdad (SQLite en fichero, caché, casos de uso, traducciones).
  *
- * Las peticiones sin sesión se probarán con el login (E10): hoy la API no
- * tiene sesión.
+ * Cada flujo inicia sesión primero, como la web tras el login (E10).
  */
 final class BoardFlowTest extends IntegrationTestCase
 {
@@ -27,8 +26,17 @@ final class BoardFlowTest extends IntegrationTestCase
         $this->withHeader('Accept-Language', 'es');
     }
 
+    public function test_without_a_session_the_api_answers_401(): void
+    {
+        $this->getJson('/api/repositories')->assertUnauthorized();
+        $this->getJson('/api/projects')->assertUnauthorized();
+        $this->postJson('/api/projects', ['repository' => 'o/r', 'paths' => ['docs/plan/*.md']])
+            ->assertUnauthorized();
+    }
+
     public function test_adding_a_project_syncs_it_and_shows_its_cards_in_their_columns(): void
     {
+        $this->signIn();
         $this->getJson('/api/repositories')->assertOk()->assertJsonPath('0.fullName', 'o/r');
 
         $id = $this->postJson('/api/projects', ['repository' => 'o/r', 'paths' => ['docs/plan/*.md']])
@@ -49,6 +57,7 @@ final class BoardFlowTest extends IntegrationTestCase
 
     public function test_a_pull_request_moves_the_card_to_review_until_it_is_merged(): void
     {
+        $this->signIn();
         $id = $this->addPlan();
 
         $this->github->openPullRequest(7, ['docs/plan/E02.md' => "# E02\n- [x] c"]);
@@ -66,6 +75,7 @@ final class BoardFlowTest extends IntegrationTestCase
 
     public function test_editing_a_project_recalculates_its_board_and_deleting_it_removes_everything(): void
     {
+        $this->signIn();
         $this->github->files['docs/plan/PLAN.md'] = "# Plan\n## A\n- [x] a\n## B\n- [ ] b";
         $id = $this->addPlan();
 
@@ -88,6 +98,7 @@ final class BoardFlowTest extends IntegrationTestCase
 
     public function test_when_github_fails_the_last_good_board_stays_until_it_recovers(): void
     {
+        $this->signIn();
         $id = $this->addPlan();
 
         $this->breakGitHub();
@@ -105,6 +116,7 @@ final class BoardFlowTest extends IntegrationTestCase
 
     public function test_invalid_requests_get_a_stable_error_and_change_nothing(): void
     {
+        $this->signIn();
         $id = $this->addPlan();
 
         $this->postJson('/api/projects', ['paths' => 'no es una lista'])

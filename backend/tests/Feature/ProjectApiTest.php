@@ -30,6 +30,7 @@ final class ProjectApiTest extends TestCase
         // El adaptador real se cambia por el falso; la caché es la de verdad.
         $cache = $this->app->make(ContentCache::class);
         $this->app->instance(SourceHost::class, new CachingSourceHost($this->github, $cache));
+        $this->signIn();
     }
 
     public function test_health(): void

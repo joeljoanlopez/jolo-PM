@@ -20,12 +20,14 @@ GitHub, SQLite y React viven fuera y se enchufan a través de interfaces.
 | --- | --- | --- | --- |
 | Dominio | `Domain/Model` | `Project`, `Task`, `Board`, `Card`… y sus reglas de validación | nada |
 | | `Domain/Service` | `MarkdownTaskParser`, `GlobMatcher`, `BoardBuilder` (reglas de columna) | nada |
-| | `Domain/Port` | Interfaces que el dominio necesita: `SourceHost`, `ProjectRepository`, `BoardStore`, `ContentCache` | nada |
-| Aplicación | `Application` | Un caso de uso por clase: `AddProject`, `SyncProject`, `SyncAllProjects`… | Dominio |
-| Infraestructura | `Infrastructure/Http` | Controladores, `FormRequest`, traducción de excepciones a HTTP | todo |
-| | `Infrastructure/Console` | Comandos `artisan` (`projects:sync`, `blobs:prune`) | todo |
+| | `Domain/Auth` | Login: `Account` (cuenta única), `SetupCode`, `RecoveryCodes`, `PasswordPolicy`, `TotpVerifier` (RFC 6238 con `hash_hmac`) | nada |
+| | `Domain/Port` | Interfaces que el dominio necesita: `SourceHost`, `ProjectRepository`, `BoardStore`, `ContentCache`; y para el login, `AccountRepository`, `PasswordHasher`, `SecretCipher`, `Clock`, `LoginAttemptLimiter`, `LoginLog` | nada |
+| Aplicación | `Application` | Un caso de uso por clase: `AddProject`, `SyncProject`, `SyncAllProjects`…; y `IssueSetupCode`, `CompleteSetup`, `Login`, `VerifySecondFactor`, `RegenerateRecoveryCodes`, `ResetAccount`, `SessionStatus` | Dominio |
+| Infraestructura | `Infrastructure/Http` | Controladores, `FormRequest`, middleware (`RequireAuthentication`, CSRF), traducción de excepciones a HTTP | todo |
+| | `Infrastructure/Auth` | Adaptadores del login sobre `Hash`, `Crypt` y `RateLimiter`; `AuthSession`, lo que la sesión de Laravel guarda del login | todo |
+| | `Infrastructure/Console` | Comandos `artisan` (`projects:sync`, `blobs:prune`, `auth:setup-code`, `auth:reset`) | todo |
 | | `Infrastructure/GitHub` | `GitHubSourceHost`: implementa `SourceHost` con el cliente `Http` de Laravel | todo |
-| | `Infrastructure/Persistence` | Modelos Eloquent y adaptadores de `ProjectRepository`, `BoardStore`, `ContentCache` | todo |
+| | `Infrastructure/Persistence` | Modelos Eloquent y adaptadores de `ProjectRepository`, `BoardStore`, `ContentCache`, `AccountRepository`, `LoginLog` | todo |
 | | `Infrastructure/Cache` | `CachingSourceHost`: decorador que cachea cualquier `SourceHost` | Dominio |
 | Composición | `Providers/AppServiceProvider` | Qué adaptador implementa cada puerto | todo |
 
@@ -55,14 +57,31 @@ rompe.
 5. `BoardBuilder` decide el estado de cada tarea y la columna de cada tarjeta.
 6. `BoardStore` guarda el tablero; si algo falló, guarda el error y conserva el anterior.
 
+### Login
+
+La API la usa solo la web, en el mismo origen: sesión de Laravel en cookie
+(`HttpOnly`, `Secure`, `SameSite=Strict`, guardada en SQLite) y CSRF con la
+cookie `XSRF-TOKEN` y la cabecera `X-XSRF-TOKEN`. `routes/api.php` decide qué
+rutas exigen `RequireAuthentication`; todas salvo `/api/health` y `/api/auth/*`.
+
+1. `POST /api/auth/login` → `Login`: la sesión queda pendiente del segundo
+   factor durante 5 minutos.
+2. `POST /api/auth/two-factor` → `VerifySecondFactor`: TOTP (se guarda el último
+   periodo usado para que cada código valga una vez) o código de recuperación.
+   La sesión cambia de id y queda ligada al id de la cuenta; si la cuenta se
+   borra (`auth:reset`), sus sesiones dejan de valer.
+
+Sin cuenta, el entrypoint lanza `auth:setup-code`, que escribe en los logs el
+código que pide el asistente (`/api/auth/setup/*` → `CompleteSetup`).
+
 ## Frontend (`frontend/src`)
 
 | Capa | Carpeta | Qué hay |
 | --- | --- | --- |
 | Dominio | `domain/` | Tipos (`model.ts`) y funciones puras de presentación (`board.ts`: columnas, progreso, agrupado) |
-| Puerto | `ports/ProjectsGateway.ts` | Interfaz con todo lo que la UI pide al backend |
-| Adaptador | `infrastructure/HttpProjectsGateway.ts` | Implementación con `fetch` contra `/api` |
-| UI | `ui/` | Componentes React. Obtienen el gateway por contexto (`useGateway`), nunca importan el adaptador |
+| Puerto | `ports/ProjectsGateway.ts`, `ports/AuthGateway.ts` | Interfaces con todo lo que la UI pide al backend |
+| Adaptador | `infrastructure/Http*Gateway.ts` | Implementación contra `/api` con `HttpClient` (idioma, CSRF, aviso ante 401) |
+| UI | `ui/` | Componentes React. Obtienen los gateways por contexto (`useGateway`, `useAuthGateway`), nunca importan el adaptador. `ui/auth/AuthGate` enseña el asistente o el login mientras no hay sesión, y vuelve a ellos ante cualquier 401 |
 | Composición | `main.tsx` | Elige el adaptador |
 
 Para trabajar sin backend basta otro adaptador del puerto con datos en memoria

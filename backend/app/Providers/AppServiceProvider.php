@@ -2,15 +2,28 @@
 
 namespace App\Providers;
 
+use App\Domain\Port\AccountRepository;
 use App\Domain\Port\BoardStore;
+use App\Domain\Port\Clock;
 use App\Domain\Port\ContentCache;
+use App\Domain\Port\LoginAttemptLimiter;
+use App\Domain\Port\LoginLog;
+use App\Domain\Port\PasswordHasher;
 use App\Domain\Port\ProjectRepository;
+use App\Domain\Port\SecretCipher;
 use App\Domain\Port\SourceHost;
+use App\Infrastructure\Auth\LaravelLoginAttemptLimiter;
+use App\Infrastructure\Auth\LaravelPasswordHasher;
+use App\Infrastructure\Auth\LaravelSecretCipher;
+use App\Infrastructure\Auth\SystemClock;
 use App\Infrastructure\Cache\CachingSourceHost;
 use App\Infrastructure\GitHub\GitHubSourceHost;
+use App\Infrastructure\Persistence\DatabaseAccountRepository;
+use App\Infrastructure\Persistence\DatabaseLoginLog;
 use App\Infrastructure\Persistence\EloquentBoardStore;
 use App\Infrastructure\Persistence\EloquentContentCache;
 use App\Infrastructure\Persistence\EloquentProjectRepository;
+use Illuminate\Cache\RateLimiter;
 use Illuminate\Http\Client\Factory as Http;
 use Illuminate\Support\ServiceProvider;
 
@@ -37,6 +50,18 @@ class AppServiceProvider extends ServiceProvider
                 (string) config('jolopm.github.api_url'),
             ),
             $app->make(ContentCache::class),
+        ));
+
+        // Login.
+        $this->app->singleton(AccountRepository::class, DatabaseAccountRepository::class);
+        $this->app->singleton(LoginLog::class, DatabaseLoginLog::class);
+        $this->app->singleton(PasswordHasher::class, LaravelPasswordHasher::class);
+        $this->app->singleton(SecretCipher::class, LaravelSecretCipher::class);
+        $this->app->singleton(Clock::class, SystemClock::class);
+        $this->app->singleton(LoginAttemptLimiter::class, fn ($app) => new LaravelLoginAttemptLimiter(
+            $app->make(RateLimiter::class),
+            (int) config('jolopm.auth.max_attempts'),
+            (int) config('jolopm.auth.decay_seconds'),
         ));
     }
 }

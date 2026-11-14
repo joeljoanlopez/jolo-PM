@@ -15,6 +15,15 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withCommands([__DIR__.'/../app/Infrastructure/Console'])
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->append(\App\Infrastructure\Http\Middleware\UseRequestLanguage::class);
+        // La API la usa solo la web, en el mismo origen: sesión en cookie y
+        // CSRF como en el grupo `web` de Laravel. Qué rutas exigen login lo
+        // dice routes/api.php.
+        $middleware->api(prepend: [
+            \Illuminate\Cookie\Middleware\EncryptCookies::class,
+            \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
+            \Illuminate\Session\Middleware\StartSession::class,
+            \App\Infrastructure\Http\Middleware\VerifyCsrfToken::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // Es una API pura: los errores siempre en JSON, nunca páginas HTML.
