@@ -107,7 +107,10 @@ final class AuthApiTest extends TestCase
         $this->login();
         $this->postJson('/api/auth/two-factor', ['code' => $this->totpCode()])->assertOk();
 
-        $new = $this->postJson('/api/auth/recovery-codes')->assertOk()->json('recoveryCodes');
+        $this->clock->advance(30);
+        $new = $this->postJson('/api/auth/recovery-codes', ['code' => $this->totpCode()])
+            ->assertOk()
+            ->json('recoveryCodes');
         $this->assertCount(10, $new);
         $this->postJson('/api/auth/logout');
 
@@ -121,7 +124,80 @@ final class AuthApiTest extends TestCase
         $this->createAccount();
         $this->getJson('/api/auth/me');
 
-        $this->postJson('/api/auth/recovery-codes')->assertUnauthorized();
+        $this->postJson('/api/auth/recovery-codes', ['code' => $this->totpCode()])->assertUnauthorized();
+    }
+
+    public function test_regenerating_recovery_codes_needs_a_valid_totp_code_even_with_a_session(): void
+    {
+        $old = $this->createAccount();
+        $this->login();
+        $used = $this->totpCode();
+        $this->postJson('/api/auth/two-factor', ['code' => $used])->assertOk();
+
+        $this->postJson('/api/auth/recovery-codes')->assertStatus(422);
+        $this->postJson('/api/auth/recovery-codes', ['code' => '000000'])
+            ->assertStatus(422)
+            ->assertJsonPath('error.code', 'invalid_credentials');
+        // El código con el que se ha entrado ya está gastado.
+        $this->postJson('/api/auth/recovery-codes', ['code' => $used])->assertStatus(422);
+
+        // Los códigos de antes siguen valiendo: no se ha regenerado nada.
+        $this->postJson('/api/auth/logout');
+        $this->login();
+        $this->postJson('/api/auth/two-factor', ['recoveryCode' => $old[0]])->assertOk();
+    }
+
+    public function test_regenerating_recovery_codes_shares_the_second_factor_attempt_limit(): void
+    {
+        $this->signIn();
+        for ($i = 0; $i < 5; $i++) {
+            $this->postJson('/api/auth/recovery-codes', ['code' => '000000'])->assertStatus(422);
+        }
+
+        $this->postJson('/api/auth/recovery-codes', ['code' => $this->totpCode()])->assertStatus(429);
+    }
+
+    public function test_the_attempt_limit_uses_the_client_ip_only_behind_a_trusted_proxy(): void
+    {
+        $this->createAccount();
+        $this->getJson('/api/auth/me');
+        $fromProxy = fn (string $client) => $this->withServerVariables(['REMOTE_ADDR' => '172.18.0.5'])
+            ->withHeader('X-Forwarded-For', "1.2.3.4, $client");
+
+        // Sin proxy de confianza, X-Forwarded-For no cuenta: todos son 172.18.0.5.
+        for ($i = 0; $i < 5; $i++) {
+            $fromProxy("10.0.0.$i")->postJson('/api/auth/login', ['password' => 'nope'])->assertStatus(422);
+        }
+        $fromProxy('10.0.0.9')->postJson('/api/auth/login', ['password' => 'nope'])->assertStatus(429);
+
+        // Con el proxy de confianza, cada cliente tiene su límite. Vale la
+        // última IP, la que añade el proxy: la primera la inventa el cliente.
+        config(['trustedproxy.proxies' => 'REMOTE_ADDR']);
+        for ($i = 0; $i < 5; $i++) {
+            $fromProxy('10.0.0.1')->postJson('/api/auth/login', ['password' => 'nope'])->assertStatus(422);
+        }
+        $fromProxy('10.0.0.1')->postJson('/api/auth/login', ['password' => 'nope'])->assertStatus(429);
+        $fromProxy('10.0.0.2')->postJson('/api/auth/login', ['password' => 'nope'])->assertStatus(422);
+
+        $ips = DB::table('login_attempts')->pluck('ip')->all();
+        $this->assertContains('10.0.0.2', $ips);
+        $this->assertNotContains('1.2.3.4', $ips);
+    }
+
+    public function test_login_records_older_than_90_days_are_purged(): void
+    {
+        $this->createAccount();
+        $this->getJson('/api/auth/me');
+        $this->postJson('/api/auth/login', ['password' => 'nope']);
+        $this->clock->advance(89 * 86400);
+        $this->postJson('/api/auth/login', ['password' => 'nope']);
+        $this->clock->advance(2 * 86400);
+
+        $this->artisan('auth:prune-logins')
+            ->expectsOutput('1 registros de inicio de sesión purgados.')
+            ->assertSuccessful();
+
+        $this->assertSame(1, DB::table('login_attempts')->count());
     }
 
     public function test_logout_closes_the_session(): void

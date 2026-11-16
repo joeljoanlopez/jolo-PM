@@ -10,4 +10,7 @@ use App\Domain\Auth\LoginAttempt;
 interface LoginLog
 {
     public function record(LoginAttempt $attempt): void;
+
+    /** @return int cuántos registros se han borrado */
+    public function purgeBefore(\DateTimeImmutable $limit): int;
 }

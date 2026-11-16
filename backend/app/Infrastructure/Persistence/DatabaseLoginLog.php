@@ -24,4 +24,9 @@ final class DatabaseLoginLog implements LoginLog
             'created_at' => $attempt->at,
         ]);
     }
+
+    public function purgeBefore(\DateTimeImmutable $limit): int
+    {
+        return $this->db->table('login_attempts')->where('created_at', '<', $limit)->delete();
+    }
 }

@@ -43,7 +43,7 @@ final class Base32
         $out = '';
         foreach (str_split($bits, 8) as $chunk) {
             if (strlen($chunk) === 8) {
-                $out .= chr((int) bindec($chunk));
+                $out .= chr((int) bindec($chunk) & 0xFF);
             }
         }
 

@@ -18,6 +18,8 @@ return [
         // configuración) antes de responder 429, y ventana en segundos.
         'max_attempts' => (int) env('AUTH_MAX_ATTEMPTS', 5),
         'decay_seconds' => (int) env('AUTH_DECAY_SECONDS', 60),
+        // Días que se guarda el registro de inicios de sesión.
+        'login_log_days' => (int) env('LOGIN_LOG_DAYS', 90),
     ],
 
     'cache' => [

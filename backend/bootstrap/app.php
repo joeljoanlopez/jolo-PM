@@ -24,6 +24,11 @@ return Application::configure(basePath: dirname(__DIR__))
             \Illuminate\Session\Middleware\StartSession::class,
             \App\Infrastructure\Http\Middleware\VerifyCsrfToken::class,
         ]);
+        // IP real del cliente detrás de nginx, solo si viene de un proxy de
+        // confianza (config/trustedproxy.php): sin ella, el límite de intentos
+        // sería global y cualquiera podría bloquear el login. X-Forwarded-Host
+        // no: no hace falta y permitiría falsear el host.
+        $middleware->trustProxies(headers: Request::HEADER_X_FORWARDED_FOR | Request::HEADER_X_FORWARDED_PROTO);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // Es una API pura: los errores siempre en JSON, nunca páginas HTML.
