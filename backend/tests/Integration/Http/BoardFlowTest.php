@@ -7,22 +7,25 @@ namespace Tests\Integration\Http;
 use Illuminate\Testing\TestResponse;
 use Tests\Integration\IntegrationTestCase;
 use Tests\Support\FakeGitHub;
+use Tests\Support\SignsIn;
 
 /**
  * Aceptación de extremo a extremo: solo la API HTTP, con GitHub falso y todo
  * lo demás de verdad (SQLite en fichero, caché, casos de uso, traducciones).
  *
- * Las peticiones sin sesión se probarán con el login (E10): hoy la API no
- * tiene sesión.
+ * Con la sesión ya iniciada: el login y las peticiones sin sesión están en
+ * AuthFlowTest.
  */
 final class BoardFlowTest extends IntegrationTestCase
 {
     use FakeGitHub;
+    use SignsIn;
 
     protected function setUp(): void
     {
         parent::setUp();
         $this->fakeGitHub();
+        $this->signIn();
         // Las peticiones de prueba de Symfony llevan `en-us` si no se dice nada.
         $this->withHeader('Accept-Language', 'es');
     }

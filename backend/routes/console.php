@@ -9,3 +9,5 @@ Schedule::command('projects:sync')
     ->withoutOverlapping();
 
 Schedule::command('blobs:prune')->daily();
+
+Schedule::command('auth:prune-logins')->daily();

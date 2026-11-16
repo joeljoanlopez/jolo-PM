@@ -16,6 +16,19 @@ return [
     // Errores guardados antes de que hubiera traducciones: ya vienen en texto.
     'legacy' => ':text',
 
+    'auth' => [
+        'unauthenticated' => 'Inicia sesión para continuar.',
+        'login_expired' => 'El inicio de sesión ha caducado; vuelve a meter la contraseña.',
+        'invalid_password' => 'Contraseña incorrecta.',
+        'invalid_two_factor_code' => 'Código incorrecto o ya usado.',
+        'invalid_recovery_code' => 'Código de recuperación incorrecto o ya usado.',
+        'invalid_setup_code' => 'Código de configuración incorrecto. Está en los logs del backend.',
+        'too_many_attempts' => 'Demasiados intentos. Vuelve a probar en :seconds s.',
+        'setup_done' => 'La cuenta ya está configurada.',
+        'setup_required' => 'Aún no hay cuenta: completa la configuración inicial.',
+        'csrf_mismatch' => 'La sesión ha cambiado; recarga la página.',
+    ],
+
     'resource' => [
         'repository' => 'el repositorio :repository',
         'repositories' => 'tus repositorios',
@@ -31,6 +44,8 @@ return [
         'paths_required' => 'Indica al menos una ruta o glob, por ejemplo docs/**/*.md.',
         'name_too_long' => 'El nombre no puede pasar de 100 caracteres.',
         'group_by_invalid' => 'Agrupa por "file" (fichero) o por "section" (sección).',
+        'password_too_short' => 'La contraseña debe tener al menos :min caracteres.',
+        'password_mismatch' => 'Las contraseñas no coinciden.',
     ],
 
     'request' => [
@@ -40,6 +55,7 @@ return [
         'string' => 'El campo :attribute debe ser texto.',
         'max' => 'El campo :attribute es demasiado largo.',
         'prohibited' => 'El :attribute no se puede cambiar; da de alta otro proyecto.',
+        'required_without' => 'Falta el campo :attribute.',
     ],
 
     'attributes' => [
@@ -48,5 +64,10 @@ return [
         'paths' => 'rutas',
         'name' => 'nombre',
         'groupBy' => 'agrupar por',
+        'password' => 'contraseña',
+        'passwordConfirmation' => 'repetir contraseña',
+        'code' => 'código',
+        'recoveryCode' => 'código de recuperación',
+        'setupCode' => 'código de configuración',
     ],
 ];

@@ -11,7 +11,17 @@ x-backend-env: &backend-env
   DB_CONNECTION: sqlite
   DB_DATABASE: /data/jolo-pm.sqlite
   CACHE_STORE: file
-  SESSION_DRIVER: array
+  # Sesiones en la base de datos: sobreviven a los despliegues. Caducan tras
+  # SESSION_LIFETIME minutos sin uso (7 días por defecto).
+  SESSION_DRIVER: database
+  SESSION_LIFETIME: ${SESSION_LIFETIME:-10080}
+  SESSION_SECURE_COOKIE: ${SESSION_SECURE_COOKIE:-true}
+  # Cifra las cookies, la sesión y el secreto TOTP. Si cambia, hay que hacer
+  # `auth:reset`. Ver el README para generarla.
+  APP_KEY: ${APP_KEY:?define APP_KEY en .env (ver .env.example)}
+  # La IP real del cliente sale de X-Forwarded-For solo si la manda quien
+  # conecta a la web: tu proxy inverso. Ver el README.
+  TRUSTED_PROXIES: ${TRUSTED_PROXIES:-REMOTE_ADDR}
   QUEUE_CONNECTION: sync
   # `:?` para no arrancar con un token vacío y fallar en cada sincronización.
   GITHUB_TOKEN: ${GITHUB_TOKEN:?define GITHUB_TOKEN en .env (ver .env.example)}
@@ -35,8 +45,8 @@ services:
     restart: unless-stopped
     ports:
       # Solo en localhost: se expone con un proxy inverso delante (las labels
-      # de abajo son para un generador de vhosts de nginx), que es quien debe
-      # restringir el acceso: la app no tiene login.
+      # de abajo son para un generador de vhosts de nginx) que termine HTTPS y
+      # mande X-Forwarded-For.
       - "127.0.0.1:${JOLOPM_PORT:-8095}:80"
     labels:
       - "nginx.autoconf=true"

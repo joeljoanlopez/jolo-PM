@@ -33,6 +33,7 @@ código se ignoran. Las tareas se agrupan por el encabezado bajo el que están.
 
 ```sh
 cp .env.example .env      # y rellena GITHUB_TOKEN
+sed -i "s|^APP_KEY=.*|APP_KEY=base64:$(openssl rand -base64 32)|" .env   # genera APP_KEY
 mkdir -p data             # con tu usuario: si la crea Docker, es de root
 docker compose up -d --build
 ```
@@ -43,15 +44,70 @@ abrirla desde otros dispositivos, ponle delante un proxy inverso. El
 (`nginx.autoconf`, `nginx.domain`); si usas otro proxy, quítalas o cámbialas
 por las suyas.
 
-jolo-PM **no tiene login**: cualquiera que llegue a la web ve los repos a los
-que tiene acceso el token. Limita el acceso desde el proxy (red local, VPN…).
+`APP_KEY` cifra las cookies, la sesión y el secreto del 2FA: genérala una vez
+y no la cambies. Si cambia, el 2FA deja de funcionar y hay que rehacer la
+cuenta con `auth:reset` (ver abajo). Si vienes de una versión sin login, tu
+`.env` no tiene la línea: añádela con
+`echo "APP_KEY=base64:$(openssl rand -base64 32)" >> .env`. Sin ella el compose
+no arranca.
+
+### Login con 2FA
+
+La web tiene **un solo usuario**, con contraseña y segundo factor (TOTP)
+obligatorio. La primera vez que la abres sale el **asistente de configuración
+inicial**:
+
+1. **Código de configuración**: el backend lo escribe en sus logs al arrancar
+   mientras no hay cuenta. Así nadie de la red puede quedarse la cuenta antes
+   que tú.
+
+   ```sh
+   docker compose logs backend | grep -A2 "código de configuración"
+   ```
+2. **Contraseña**: mínimo 12 caracteres.
+3. **2FA**: escanea el QR con tu app (Aegis, 1Password, Google Authenticator…)
+   y escribe el código que te da.
+4. **Códigos de recuperación**: 10 códigos de un solo uso para entrar si
+   pierdes el móvil. Guárdalos: no se vuelven a enseñar. Con la sesión
+   iniciada puedes generar otros desde el icono de la llave de la cabecera
+   (pide un código de la app).
+
+La sesión dura mientras la uses y caduca tras `SESSION_LIFETIME` minutos sin
+usarla (7 días por defecto). Tras 5 intentos fallidos en un minuto (contraseña,
+código o código de configuración), esa IP tiene que esperar.
+
+**Si pierdes el acceso** (contraseña, móvil y códigos), o quieres cambiar la
+contraseña o el móvil del 2FA:
+
+```sh
+docker compose exec backend php artisan auth:reset
+```
+
+Borra la cuenta (los proyectos se quedan), cierra todas las sesiones y
+escribe un código de configuración nuevo: la web vuelve al asistente.
+
+#### El proxy y la IP real
+
+El límite de intentos va por IP, así que el backend necesita la IP real del
+cliente y no la del proxy. Tu proxy tiene que mandar `X-Forwarded-For` (en
+nginx: `proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;`, que los
+generadores de vhosts ya ponen). Con `TRUSTED_PROXIES=REMOTE_ADDR` (el valor
+por defecto) solo se cree esa cabecera cuando viene de quien conecta a la web,
+que es tu proxy, porque la web solo escucha en `127.0.0.1`. Si tu proxy no
+manda la cabecera, todas las peticiones cuentan como una misma IP y cualquiera
+podría bloquear el login. No uses `*`: en Laravel significa fiarse de
+cualquiera, y el cliente podría inventarse la IP.
+
+La cookie de sesión solo viaja por HTTPS (`SESSION_SECURE_COOKIE=true`): entra
+por el proxy con HTTPS. `http://localhost` también vale, los navegadores lo
+tratan como seguro.
 
 La base de datos SQLite va a `./data`.
 
 ### Token de GitHub
 
 Solo necesita **leer**, y conviene que vea únicamente los repos que quieres
-seguir (ver la nota de arriba sobre el login). Opciones:
+seguir. Opciones:
 
 - **Fine-grained token** (recomendado): *Settings → Developer settings →
   Fine-grained tokens*. Acceso a los repos que quieras seguir y permisos de solo
@@ -148,4 +204,6 @@ npm test && npm run typecheck
 | --- | --- |
 | `php artisan projects:sync [id]` | Sincroniza todos los proyectos, o uno |
 | `php artisan blobs:prune` | Purga la caché de ficheros sin usar (`BLOB_TTL_DAYS`) |
+| `php artisan auth:reset` | Borra la cuenta (no los proyectos) y vuelve al asistente (en el contenedor `backend`) |
+| `php artisan auth:prune-logins` | Purga el registro de inicios de sesión de más de 90 días (lo hace el worker cada día) |
 | `php artisan schedule:list` | Muestra cuándo toca cada tarea |

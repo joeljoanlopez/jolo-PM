@@ -119,21 +119,21 @@ y la VPN, y cualquiera de dentro ve los repos a los que tiene acceso el token.
   `Application`.
 
 ## Subtareas
-- [ ] Modelo `Account` (usuario único) y migración
-- [ ] Código de configuración: generado al arrancar sin cuenta, escrito en los logs y de un solo uso
-- [ ] Asistente de configuración inicial en la API (contraseña + alta del 2FA + códigos de recuperación)
-- [ ] `TotpVerifier` en el dominio, probado con los vectores del RFC 6238
-- [ ] Rechazo de códigos reutilizados (último periodo usado)
-- [ ] Códigos de recuperación: generación, hash y consumo de un solo uso
-- [ ] Secreto TOTP cifrado (puerto `SecretCipher` + adaptador con `Crypt`)
-- [ ] Casos de uso de login en dos pasos y regeneración de códigos de recuperación (con código TOTP)
-- [ ] Rutas `/api/auth/*`, middleware de autenticación y 401 en el resto de la API
-- [ ] Límite de intentos por IP en login, 2FA y configuración (429)
-- [ ] IP real del cliente detrás de nginx (`TrustProxies` solo para el proxy)
-- [ ] Sesión en cookie segura, CSRF y `APP_KEY` obligatoria
-- [ ] Registro de inicios de sesión y purga de los de más de 90 días
-- [ ] Comando `auth:reset` para recuperar el acceso
-- [ ] Frontend: `AuthGateway`, asistente de configuración con QR, pantallas de login y código (`es`/`en`)
-- [ ] Frontend: redirección a login ante 401 y botón de cerrar sesión
-- [ ] Tests de API del flujo completo, incluidos límite de intentos, CSRF y 401 sin sesión en los flujos de `tests/Integration/Http`
-- [ ] README: configuración inicial, `APP_KEY`, `TRUSTED_PROXIES` y qué hacer si se pierde el acceso
+- [x] Modelo `Account` (usuario único) y migración
+- [x] Código de configuración: generado al arrancar sin cuenta, escrito en los logs y de un solo uso
+- [x] Asistente de configuración inicial en la API (contraseña + alta del 2FA + códigos de recuperación)
+- [x] `TotpVerifier` en el dominio, probado con los vectores del RFC 6238
+- [x] Rechazo de códigos reutilizados (último periodo usado)
+- [x] Códigos de recuperación: generación, hash y consumo de un solo uso
+- [x] Secreto TOTP cifrado (puerto `SecretCipher` + adaptador con `Crypt`)
+- [x] Casos de uso de login en dos pasos y regeneración de códigos de recuperación (con código TOTP)
+- [x] Rutas `/api/auth/*`, middleware de autenticación y 401 en el resto de la API
+- [x] Límite de intentos por IP en login, 2FA y configuración (429)
+- [x] IP real del cliente detrás de nginx (`TrustProxies` solo para el proxy)
+- [x] Sesión en cookie segura, CSRF y `APP_KEY` obligatoria
+- [x] Registro de inicios de sesión y purga de los de más de 90 días
+- [x] Comando `auth:reset` para recuperar el acceso
+- [x] Frontend: `AuthGateway`, asistente de configuración con QR, pantallas de login y código (`es`/`en`)
+- [x] Frontend: redirección a login ante 401 y botón de cerrar sesión
+- [x] Tests de API del flujo completo, incluidos límite de intentos, CSRF y 401 sin sesión en los flujos de `tests/Integration/Http`
+- [x] README: configuración inicial, `APP_KEY`, `TRUSTED_PROXIES` y qué hacer si se pierde el acceso

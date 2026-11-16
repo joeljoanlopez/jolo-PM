@@ -12,6 +12,9 @@ php artisan route:cache --quiet
 
 if [ "${RUN_MIGRATIONS:-0}" = "1" ]; then
     php artisan migrate --force --no-interaction
+    # Sin cuenta todavía: escribe en los logs el código de la configuración
+    # inicial (`docker compose logs backend`). Con cuenta no hace nada.
+    php artisan auth:setup-code
 else
     # El worker espera a que el backend haya migrado, para no correr dos
     # migraciones a la vez sobre el mismo fichero SQLite.

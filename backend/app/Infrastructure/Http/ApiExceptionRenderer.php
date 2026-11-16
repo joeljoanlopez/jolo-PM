@@ -4,14 +4,20 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Http;
 
+use App\Domain\Exception\AuthenticationFailed;
 use App\Domain\Exception\DomainException;
 use App\Domain\Exception\DuplicateProject;
+use App\Domain\Exception\NotAuthenticated;
 use App\Domain\Exception\ProjectNotFound;
 use App\Domain\Exception\RepositoryNotAccessible;
+use App\Domain\Exception\SetupState;
 use App\Domain\Exception\SourceUnavailable;
+use App\Domain\Exception\TooManyAttempts;
 use App\Domain\Exception\ValidationFailed;
 use App\Infrastructure\I18n\Translator;
+use Illuminate\Http\Exceptions\OriginMismatchException;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Session\TokenMismatchException;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -34,6 +40,21 @@ final class ApiExceptionRenderer
             $e instanceof NotFoundHttpException => self::error(404, 'not_found', __('errors.route_not_found')),
             $e instanceof DuplicateProject => self::domain(409, 'duplicate_project', $e),
             $e instanceof SourceUnavailable => self::domain(502, 'source_unavailable', $e),
+            $e instanceof NotAuthenticated => self::domain(401, 'unauthenticated', $e),
+            $e instanceof AuthenticationFailed => self::domain(422, 'invalid_credentials', $e),
+            // Con la cuenta creada, el asistente no existe: 404.
+            $e instanceof SetupState => $e->accountExists
+                ? self::domain(404, 'not_found', $e)
+                : self::domain(409, 'setup_required', $e),
+            $e instanceof TooManyAttempts => self::domain(429, 'too_many_attempts', $e)
+                ->header('Retry-After', (string) $e->retryAfterSeconds),
+            // Laravel las envuelve en HttpException (419 y 403) antes de llegar aquí.
+            $e->getPrevious() instanceof TokenMismatchException,
+            $e->getPrevious() instanceof OriginMismatchException => self::error(
+                419,
+                'csrf_mismatch',
+                __('errors.auth.csrf_mismatch'),
+            ),
             $e instanceof DomainException => self::domain(400, 'domain_error', $e),
             // Lo demás lo gestiona Laravel (500 con detalle solo si APP_DEBUG).
             default => null,

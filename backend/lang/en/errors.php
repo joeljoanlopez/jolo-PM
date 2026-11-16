@@ -14,6 +14,19 @@ return [
     'unexpected_response' => 'GitHub responded :status when reading :resource: :detail',
     'legacy' => ':text',
 
+    'auth' => [
+        'unauthenticated' => 'Sign in to continue.',
+        'login_expired' => 'The sign-in has expired; enter your password again.',
+        'invalid_password' => 'Wrong password.',
+        'invalid_two_factor_code' => 'Wrong or already used code.',
+        'invalid_recovery_code' => 'Wrong or already used recovery code.',
+        'invalid_setup_code' => 'Wrong setup code. You can find it in the backend logs.',
+        'too_many_attempts' => 'Too many attempts. Try again in :seconds s.',
+        'setup_done' => 'The account is already set up.',
+        'setup_required' => 'There is no account yet: complete the initial setup.',
+        'csrf_mismatch' => 'The session has changed; reload the page.',
+    ],
+
     'resource' => [
         'repository' => 'the repository :repository',
         'repositories' => 'your repositories',
@@ -29,6 +42,8 @@ return [
         'paths_required' => 'Enter at least one path or glob, e.g. docs/**/*.md.',
         'name_too_long' => 'The name cannot be longer than 100 characters.',
         'group_by_invalid' => 'Group by "file" or by "section".',
+        'password_too_short' => 'The password must be at least :min characters long.',
+        'password_mismatch' => 'The passwords do not match.',
     ],
 
     'request' => [
@@ -38,6 +53,7 @@ return [
         'string' => 'The :attribute field must be text.',
         'max' => 'The :attribute field is too long.',
         'prohibited' => 'The :attribute cannot be changed; add another project instead.',
+        'required_without' => 'The :attribute field is missing.',
     ],
 
     'attributes' => [
@@ -46,5 +62,10 @@ return [
         'paths' => 'paths',
         'name' => 'name',
         'groupBy' => 'group by',
+        'password' => 'password',
+        'passwordConfirmation' => 'repeat password',
+        'code' => 'code',
+        'recoveryCode' => 'recovery code',
+        'setupCode' => 'setup code',
     ],
 ];

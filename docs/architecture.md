@@ -20,9 +20,11 @@ GitHub, SQLite y React viven fuera y se enchufan a través de interfaces.
 | --- | --- | --- | --- |
 | Dominio | `Domain/Model` | `Project`, `Task`, `Board`, `Card`… y sus reglas de validación | nada |
 | | `Domain/Service` | `MarkdownTaskParser`, `GlobMatcher`, `BoardBuilder` (reglas de columna) | nada |
-| | `Domain/Port` | Interfaces que el dominio necesita: `SourceHost`, `ProjectRepository`, `BoardStore`, `ContentCache` | nada |
-| Aplicación | `Application` | Un caso de uso por clase: `AddProject`, `SyncProject`, `SyncAllProjects`… | Dominio |
-| Infraestructura | `Infrastructure/Http` | Controladores, `FormRequest`, traducción de excepciones a HTTP | todo |
+| | `Domain/Model/Auth`, `Domain/Service/Auth` | Login (E10): `Account`, `SetupCode`, `RecoveryCodes`, `Password`; `TotpVerifier` (RFC 6238 con `hash_hmac`) y `Base32` | nada |
+| | `Domain/Port` | Interfaces que el dominio necesita: `SourceHost`, `ProjectRepository`, `BoardStore`, `ContentCache`; para el login, `AccountRepository`, `PasswordHasher`, `SecretCipher`, `Clock`, `LoginAttemptLimiter`, `LoginLog` | nada |
+| Aplicación | `Application` | Un caso de uso por clase: `AddProject`, `SyncProject`, `SyncAllProjects`… y en `Application/Auth` los del login: `CompleteSetup`, `Login`, `VerifySecondFactor`, `RegenerateRecoveryCodes`, `ResetAccount` | Dominio |
+| Infraestructura | `Infrastructure/Http` | Controladores, `FormRequest`, traducción de excepciones a HTTP; `AuthSession` (estado del login en la sesión) y el middleware `Authenticate` (401 sin sesión) | todo |
+| | `Infrastructure/Auth` | Adaptadores del login sobre `Hash`, `Crypt`, `RateLimiter` y la hora de Laravel | todo |
 | | `Infrastructure/Console` | Comandos `artisan` (`projects:sync`, `blobs:prune`) | todo |
 | | `Infrastructure/GitHub` | `GitHubSourceHost`: implementa `SourceHost` con el cliente `Http` de Laravel | todo |
 | | `Infrastructure/Persistence` | Modelos Eloquent y adaptadores de `ProjectRepository`, `BoardStore`, `ContentCache` | todo |
@@ -60,10 +62,19 @@ rompe.
 | Capa | Carpeta | Qué hay |
 | --- | --- | --- |
 | Dominio | `domain/` | Tipos (`model.ts`) y funciones puras de presentación (`board.ts`: columnas, progreso, agrupado) |
-| Puerto | `ports/ProjectsGateway.ts` | Interfaz con todo lo que la UI pide al backend |
-| Adaptador | `infrastructure/HttpProjectsGateway.ts` | Implementación con `fetch` contra `/api` |
+| Puerto | `ports/ProjectsGateway.ts`, `ports/AuthGateway.ts` | Interfaces con todo lo que la UI pide al backend |
+| Adaptador | `infrastructure/Http*Gateway.ts` | Implementación con `fetch` contra `/api`; `HttpClient` añade la cookie de sesión, el token CSRF y avisa de los 401 |
 | UI | `ui/` | Componentes React. Obtienen el gateway por contexto (`useGateway`), nunca importan el adaptador |
 | Composición | `main.tsx` | Elige el adaptador |
 
 Para trabajar sin backend basta otro adaptador del puerto con datos en memoria
 y cambiarlo en `main.tsx`.
+
+## Login (E10)
+
+Toda la API salvo `/api/health` y `/api/auth/*` exige sesión: el middleware
+`Authenticate` responde 401 si la sesión no ha pasado contraseña **y** segundo
+factor. La sesión guarda el id aleatorio de la cuenta; `auth:reset` borra la
+cuenta y con ella invalida todas las sesiones. En el frontend, `AuthProvider`
+escucha los 401 de cualquier petición y vuelve al login o al asistente.
+

@@ -44,9 +44,10 @@ final class ArchitectureTest extends TestCase
                     sprintf('%s depende de %s', $file->getFilename(), $namespace),
                 );
             }
-            // Ni helpers globales de Laravel.
+            // Ni helpers globales de Laravel (declarar un método `now()`, como
+            // el puerto Clock, sí se puede).
             $this->assertDoesNotMatchRegularExpression(
-                '/(?<![\w>:$])(app|config|env|now|response|request|collect)\(/',
+                '/(?<![\w>:$])(?<!function )(app|config|env|now|response|request|collect)\(/',
                 $source,
                 sprintf('%s usa un helper global del framework', $file->getFilename()),
             );

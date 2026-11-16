@@ -3,16 +3,21 @@ import { createRoot } from "react-dom/client";
 import "./index.css";
 import { App } from "./ui/App";
 import { GatewayProvider } from "./ui/gateway";
+import { AuthProvider } from "./ui/auth/AuthProvider";
+import { HttpClient } from "./infrastructure/HttpClient";
 import { HttpProjectsGateway } from "./infrastructure/HttpProjectsGateway";
+import { HttpAuthGateway } from "./infrastructure/HttpAuthGateway";
 import { getLanguage } from "./i18n/language";
 
-// Raíz de composición del frontend: aquí se elige el adaptador del puerto.
-const gateway = new HttpProjectsGateway("/api", getLanguage);
+// Raíz de composición del frontend: aquí se eligen los adaptadores de los puertos.
+const http = new HttpClient("/api", getLanguage);
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <GatewayProvider gateway={gateway}>
-      <App />
-    </GatewayProvider>
+    <AuthProvider gateway={new HttpAuthGateway(http)}>
+      <GatewayProvider gateway={new HttpProjectsGateway(http)}>
+        <App />
+      </GatewayProvider>
+    </AuthProvider>
   </StrictMode>,
 );

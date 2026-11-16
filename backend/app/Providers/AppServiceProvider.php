@@ -2,15 +2,29 @@
 
 namespace App\Providers;
 
+use App\Domain\Port\AccountRepository;
 use App\Domain\Port\BoardStore;
+use App\Domain\Port\Clock;
 use App\Domain\Port\ContentCache;
+use App\Domain\Port\LoginAttemptLimiter;
+use App\Domain\Port\LoginLog;
+use App\Domain\Port\PasswordHasher;
 use App\Domain\Port\ProjectRepository;
+use App\Domain\Port\SecretCipher;
 use App\Domain\Port\SourceHost;
+use App\Infrastructure\Auth\CacheLoginAttemptLimiter;
+use App\Infrastructure\Auth\LaravelPasswordHasher;
+use App\Infrastructure\Auth\LaravelSecretCipher;
+use App\Infrastructure\Auth\SystemClock;
 use App\Infrastructure\Cache\CachingSourceHost;
 use App\Infrastructure\GitHub\GitHubSourceHost;
+use App\Infrastructure\Http\Auth\AuthSession;
+use App\Infrastructure\Persistence\EloquentAccountRepository;
 use App\Infrastructure\Persistence\EloquentBoardStore;
 use App\Infrastructure\Persistence\EloquentContentCache;
+use App\Infrastructure\Persistence\EloquentLoginLog;
 use App\Infrastructure\Persistence\EloquentProjectRepository;
+use Illuminate\Cache\RateLimiter;
 use Illuminate\Http\Client\Factory as Http;
 use Illuminate\Support\ServiceProvider;
 
@@ -37,6 +51,23 @@ class AppServiceProvider extends ServiceProvider
                 (string) config('jolopm.github.api_url'),
             ),
             $app->make(ContentCache::class),
+        ));
+
+        // Login con 2FA (E10).
+        $this->app->singleton(AccountRepository::class, EloquentAccountRepository::class);
+        $this->app->singleton(LoginLog::class, EloquentLoginLog::class);
+        $this->app->singleton(PasswordHasher::class, LaravelPasswordHasher::class);
+        $this->app->singleton(SecretCipher::class, LaravelSecretCipher::class);
+        $this->app->singleton(Clock::class, SystemClock::class);
+        $this->app->singleton(LoginAttemptLimiter::class, fn ($app) => new CacheLoginAttemptLimiter(
+            $app->make(RateLimiter::class),
+            (int) config('jolopm.auth.max_attempts'),
+            (int) config('jolopm.auth.decay_seconds'),
+        ));
+        // La sesión de la petición en curso (la que arranca StartSession).
+        $this->app->bind(AuthSession::class, fn ($app) => new AuthSession(
+            $app->make('session.store'),
+            $app->make(AccountRepository::class),
         ));
     }
 }

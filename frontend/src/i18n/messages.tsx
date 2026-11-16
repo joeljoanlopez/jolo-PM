@@ -73,6 +73,59 @@ const es = {
     review: "En revisión",
     pending: "Pendiente",
   },
+  auth: {
+    checking: "Comprobando la sesión…",
+    logout: "Cerrar sesión",
+    recoveryCodes: "Códigos de recuperación",
+    continue: "Continuar",
+    back: "Atrás",
+    password: "Contraseña",
+    passwordRepeat: "Repite la contraseña",
+    passwordHint: (min: number) => `Mínimo ${min} caracteres. Para cambiarla más adelante: php artisan auth:reset.`,
+    code: "Código de 6 dígitos",
+    setup: {
+      title: "Configuración inicial",
+      intro: "jolo-PM aún no tiene cuenta. Créala en cuatro pasos: solo hay un usuario y el segundo factor es obligatorio.",
+      steps: ["Código", "Contraseña", "2FA", "Recuperación"],
+      codeLabel: "Código de configuración",
+      codeHint: (
+        <>
+          Está en los logs del servidor: <code className="font-mono">docker compose logs backend</code>. Vale una sola vez.
+        </>
+      ) as ReactNode,
+      totpIntro: "Escanea el QR con tu app de autenticación (Aegis, 1Password, Google Authenticator…) y escribe el código que te da.",
+      manualSecret: "¿No puedes escanearlo? Introduce esta clave a mano:",
+      openInApp: "Abrir en la app de este dispositivo",
+      create: "Crear la cuenta",
+      codesIntro: "Guarda estos códigos en un sitio seguro. Cada uno sirve una vez para entrar si pierdes el móvil, y no se vuelven a enseñar.",
+      codesSaved: "Los he guardado",
+    },
+    login: {
+      title: "Iniciar sesión",
+      submit: "Entrar",
+    },
+    twoFactor: {
+      title: "Verificación en dos pasos",
+      intro: "Escribe el código de tu app de autenticación.",
+      recoveryIntro: "Escribe uno de tus códigos de recuperación. Cada uno vale una sola vez.",
+      recoveryCode: "Código de recuperación",
+      useRecovery: "Usar un código de recuperación",
+      useTotp: "Usar el código de la app",
+      verify: "Verificar",
+      restart: "Volver a la contraseña",
+      lowCodes: (left: number) =>
+        left === 0
+          ? "Has usado tu último código de recuperación. Genera otros desde «Códigos de recuperación»."
+          : `Te quedan ${left} códigos de recuperación.`,
+    },
+    regenerate: {
+      intro: "Genera 10 códigos nuevos; los anteriores dejan de valer. Confírmalo con un código de tu app de autenticación.",
+      submit: "Generar códigos nuevos",
+    },
+    copy: "Copiar",
+    copied: "Copiado",
+    download: "Descargar .txt",
+  },
   errors: {
     network: "No se puede conectar con el servidor.",
     http: (status: number) => `Error ${status}`,
@@ -149,6 +202,59 @@ const en: Messages = {
     done: "Done",
     review: "In review",
     pending: "Pending",
+  },
+  auth: {
+    checking: "Checking your session…",
+    logout: "Sign out",
+    recoveryCodes: "Recovery codes",
+    continue: "Continue",
+    back: "Back",
+    password: "Password",
+    passwordRepeat: "Repeat the password",
+    passwordHint: (min) => `At least ${min} characters. To change it later: php artisan auth:reset.`,
+    code: "6-digit code",
+    setup: {
+      title: "Initial setup",
+      intro: "jolo-PM has no account yet. Create it in four steps: there is a single user and the second factor is mandatory.",
+      steps: ["Code", "Password", "2FA", "Recovery"],
+      codeLabel: "Setup code",
+      codeHint: (
+        <>
+          It is in the server logs: <code className="font-mono">docker compose logs backend</code>. It only works once.
+        </>
+      ),
+      totpIntro: "Scan the QR code with your authenticator app (Aegis, 1Password, Google Authenticator…) and type the code it shows.",
+      manualSecret: "Can't scan it? Enter this key by hand:",
+      openInApp: "Open in this device's app",
+      create: "Create the account",
+      codesIntro: "Keep these codes somewhere safe. Each one signs you in once if you lose your phone, and they will not be shown again.",
+      codesSaved: "I have saved them",
+    },
+    login: {
+      title: "Sign in",
+      submit: "Sign in",
+    },
+    twoFactor: {
+      title: "Two-step verification",
+      intro: "Type the code from your authenticator app.",
+      recoveryIntro: "Type one of your recovery codes. Each one only works once.",
+      recoveryCode: "Recovery code",
+      useRecovery: "Use a recovery code",
+      useTotp: "Use the app code",
+      verify: "Verify",
+      restart: "Back to the password",
+      lowCodes: (left) =>
+        left === 0
+          ? "You have used your last recovery code. Generate new ones from “Recovery codes”."
+          : `You have ${left} recovery codes left.`,
+    },
+    regenerate: {
+      intro: "Generate 10 new codes; the previous ones stop working. Confirm it with a code from your authenticator app.",
+      submit: "Generate new codes",
+    },
+    copy: "Copy",
+    copied: "Copied",
+    download: "Download .txt",
   },
   errors: {
     network: "Cannot connect to the server.",
