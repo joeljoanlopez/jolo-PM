@@ -71,17 +71,40 @@ genera un código nuevo.
 
 **Día a día.** Contraseña y código. La sesión dura 7 días de inactividad
 (`SESSION_LIFETIME`, en minutos). Desde el escudo de la cabecera se ven los
-códigos de recuperación que quedan y se pueden generar otros; el botón de al
-lado cierra la sesión. Tras 5 intentos fallidos en un minuto desde la misma IP
+códigos de recuperación que quedan y se pueden generar otros (pide un código
+de la app: con una sesión abierta sola no basta); el botón de al lado cierra la
+sesión. Tras 5 intentos fallidos en un minuto desde la misma IP
 (contraseña, código o código de configuración), la API responde 429 hasta que
 pasa el minuto. Cada intento queda registrado con IP y hora en la tabla
-`login_attempts`.
+`login_attempts`, y el worker borra cada día los de más de 90 días
+(`LOGIN_LOG_DAYS`).
 
 **HTTPS.** La cookie de sesión es `Secure`: el navegador solo la manda por
 HTTPS o a `localhost`. Si tu proxy sirve la web por HTTP, el login no se
 mantendrá; sírvela por HTTPS o, solo en una red de confianza, pon
-`SESSION_SECURE_COOKIE=false` en el `.env`. Para que el límite de intentos y el
-registro vean la IP real, el proxy debe mandar `X-Forwarded-For`.
+`SESSION_SECURE_COOKIE=false` en el `.env`.
+
+**IP real detrás del proxy.** El límite de intentos va por IP, y lo que llega
+al backend es la IP del proxy: si se quedara con ella, todos compartiríais
+límite y cualquiera de la red podría bloquearte el login. Por eso el proxy
+tiene que mandar la IP real en `X-Forwarded-For` (en nginx,
+`proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;`, que los
+generadores de vhosts ya ponen). `TRUSTED_PROXIES` dice de quién se acepta esa
+cabecera:
+
+| Valor | Efecto |
+| --- | --- |
+| `REMOTE_ADDR` (por defecto) | Solo de quien conecta a la web, que es tu proxy porque la web solo escucha en `127.0.0.1`. Se toma la última IP que añade el proxy; lo que haya escrito el cliente se ignora. |
+| vacío | De nadie: todas las peticiones cuentan como la IP del proxy. |
+| IPs o rangos, separados por comas | Solo de esas direcciones. |
+| `*` | **No lo uses**: en Laravel significa fiarse de cualquiera, y el cliente podría inventarse la IP para saltarse el límite. |
+
+Para comprobarlo, falla una vez la contraseña y mira la última IP registrada;
+si sale una `172.x.x.x` de Docker, el proxy no manda la cabecera:
+
+```sh
+docker compose exec backend php artisan tinker --execute="echo DB::table('login_attempts')->latest('id')->value('ip');"
+```
 
 #### Si pierdes el acceso
 
@@ -197,3 +220,4 @@ npm test && npm run typecheck
 | `php artisan blobs:prune` | Purga la caché de ficheros sin usar (`BLOB_TTL_DAYS`) |
 | `php artisan schedule:list` | Muestra cuándo toca cada tarea |
 | `php artisan auth:reset` | Borra la cuenta para volver a crearla (en el contenedor `backend`; no toca los proyectos) |
+| `php artisan auth:prune-logins` | Purga el registro de inicios de sesión de más de 90 días (`LOGIN_LOG_DAYS`; el worker lo hace a diario) |

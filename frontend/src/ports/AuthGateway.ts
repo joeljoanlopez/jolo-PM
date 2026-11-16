@@ -16,7 +16,8 @@ export interface AuthGateway {
   login(password: string): Promise<void>;
   verifySecondFactor(factor: SecondFactor): Promise<AuthStatus>;
   logout(): Promise<void>;
-  regenerateRecoveryCodes(): Promise<string[]>;
+  /** Pide un código TOTP: con la sesión sola no basta. */
+  regenerateRecoveryCodes(code: string): Promise<string[]>;
 
   /** Avisa cuando el backend deja de reconocer la sesión (cualquier 401). */
   onSessionLost(listener: () => void): () => void;

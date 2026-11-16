@@ -34,8 +34,8 @@ export class HttpAuthGateway implements AuthGateway {
     await this.http.request<null>("POST", "/auth/logout");
   }
 
-  async regenerateRecoveryCodes() {
-    return (await this.http.request<{ recoveryCodes: string[] }>("POST", "/auth/recovery-codes")).recoveryCodes;
+  async regenerateRecoveryCodes(code: string) {
+    return (await this.http.request<{ recoveryCodes: string[] }>("POST", "/auth/recovery-codes", { code })).recoveryCodes;
   }
 
   onSessionLost(listener: () => void) {

@@ -18,6 +18,9 @@ x-backend-env: &backend-env
   SESSION_DRIVER: database
   SESSION_LIFETIME: ${SESSION_LIFETIME:-10080}
   SESSION_SECURE_COOKIE: ${SESSION_SECURE_COOKIE:-true}
+  # La IP real del cliente (límite de intentos del login) sale de
+  # X-Forwarded-For solo si la manda quien conecta a la web: tu proxy inverso.
+  TRUSTED_PROXIES: ${TRUSTED_PROXIES:-REMOTE_ADDR}
   QUEUE_CONNECTION: sync
   # `:?` para no arrancar con un token vacío y fallar en cada sincronización.
   GITHUB_TOKEN: ${GITHUB_TOKEN:?define GITHUB_TOKEN en .env (ver .env.example)}

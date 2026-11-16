@@ -25,6 +25,11 @@ final class ScheduleTest extends IntegrationTestCase
         $this->assertSame('0 0 * * *', $this->event('blobs:prune')->expression);
     }
 
+    public function test_the_login_log_is_pruned_daily(): void
+    {
+        $this->assertSame('0 0 * * *', $this->event('auth:prune-logins')->expression);
+    }
+
     public function test_every_scheduled_command_exists(): void
     {
         $commands = array_keys($this->app->make(Kernel::class)->all());

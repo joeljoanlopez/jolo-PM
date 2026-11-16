@@ -110,9 +110,11 @@ final class AuthController
         return response()->noContent();
     }
 
-    public function regenerateRecoveryCodes(RegenerateRecoveryCodes $regenerate): JsonResponse
+    public function regenerateRecoveryCodes(Request $request, RegenerateRecoveryCodes $regenerate): JsonResponse
     {
-        return response()->json(['recoveryCodes' => $regenerate->execute()]);
+        $codes = $regenerate->execute(self::text($request, 'code'), (string) $request->ip());
+
+        return response()->json(['recoveryCodes' => $codes]);
     }
 
     private static function session(Request $request): AuthSession
